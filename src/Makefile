@@ -800,15 +800,30 @@ RAYLIB_INSTALL_PATH ?= $(DESTDIR)$(PREFIX)/lib
 # RAYLIB_H_INSTALL_PATH locates the installed raylib header and associated source files.
 RAYLIB_H_INSTALL_PATH ?= $(DESTDIR)$(PREFIX)/include
 
+# Detect the OS if not set
+ifeq ($(OS),)
+  OS := $(shell uname)
+endif
+
 install :
 	mkdir -p $(RAYLIB_INSTALL_PATH)
 	mkdir -p $(RAYLIB_H_INSTALL_PATH)
+ifeq ($(OS),Windows_NT)
+	copy /Y $(RAYLIB_RELEASE_PATH)\\lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)\\lib$(RAYLIB_LIB_NAME).a
+	copy /Y raylib.h $(RAYLIB_H_INSTALL_PATH)\\raylib.h
+	copy /Y raymath.h $(RAYLIB_H_INSTALL_PATH)\\raymath.h
+	copy /Y rlgl.h $(RAYLIB_H_INSTALL_PATH)\\rlgl.h
+else ifeq ($(OS),Darwin) # macOS
+	rsync -u $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).a
+	rsync -u raylib.h $(RAYLIB_H_INSTALL_PATH)/raylib.h
+	rsync -u raymath.h $(RAYLIB_H_INSTALL_PATH)/raymath.h
+	rsync -u rlgl.h $(RAYLIB_H_INSTALL_PATH)/rlgl.h
+else # Linux
 	cp --update --verbose $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).a
 	cp --update raylib.h $(RAYLIB_H_INSTALL_PATH)/raylib.h
 	cp --update raymath.h $(RAYLIB_H_INSTALL_PATH)/raymath.h
 	cp --update rlgl.h $(RAYLIB_H_INSTALL_PATH)/rlgl.h
-	#cp --update rayspine.h $(RAYLIB_H_INSTALL_PATH)/rayspine.h
-	#cp --update $(RAYLIB_MODULE_PHYSAC_PATH)/physac.h $(RAYLIB_H_INSTALL_PATH)/physac.h
+endif
 	@echo "raylib development files installed/updated!"
 
 
