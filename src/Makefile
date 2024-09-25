@@ -474,12 +474,12 @@ endif
 INCLUDE_PATHS = -I. 
 
 ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
-    CFLAGS = $(N64_CFLAGS) -D$(PLATFORM) -D$(GRAPHICS) 
+    CFLAGS = $(N64_CFLAGS) -Wno-error=incompatible-pointer-types -D$(PLATFORM) -D$(GRAPHICS) 
     INCLUDE_PATHS = $(N64_INCLUDEDIR)
 endif
 
 ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
-    CFLAGS = $(KOS_CFLAGS) -D$(PLATFORM) -D$(GRAPHICS) 
+    CFLAGS = $(KOS_CFLAGS) -Wno-error=incompatible-pointer-types -D$(PLATFORM) -D$(GRAPHICS) 
     INCLUDE_PATHS = $(KOS_INC_PATHS)
 endif
 
