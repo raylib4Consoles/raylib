@@ -151,7 +151,11 @@ static int textLineSpacing = 2;                 // Text vertical line spacing in
 extern void LoadFontDefault(void);
 extern void UnloadFontDefault(void);
 #endif
-
+#if defined(PLATFORM_NINTENDO64)
+void rayDefaultFontsInitSurfaceBuffers();
+void rayDefaultFontGliphGlTextureInit(Font font,int index);
+Texture2D rayDefaultFontsGetTextureFromGlyph(int index);
+#endif
 //----------------------------------------------------------------------------------
 // Module Functions Definition
 //----------------------------------------------------------------------------------
@@ -228,6 +232,41 @@ extern void LoadFontDefault(void)
 
     // Re-construct image from defaultFontData and generate OpenGL texture
     //----------------------------------------------------------------------
+#if defined(PLATFORM_DREAMCAST) || defined(PLATFORM_NINTENDO64)
+    Image imFont = {
+        .data = RL_CALLOC(128*128, 4),  // 4 bytes per pixel (rgb + alpha) there are some issues with different format in Dreamcast so to avoid problems for text by now we will use this
+        .width = 128,
+        .height = 128,
+        .mipmaps = 1,
+        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+    };
+
+    // Fill image.data with defaultFontData (convert from bit to pixel!)
+    for (int i = 0, counter = 0; i < imFont.width*imFont.height; i += 32)
+    {
+        for (int j = 31; j >= 0; j--)
+        {
+            if (BIT_CHECK(defaultFontData[counter], j))
+            {
+                // NOTE: We are unreferencing data as short, so,
+                // we must consider data as little-endian order (alpha + gray)
+                ((unsigned int *)imFont.data)[i + j] = 0xffffffff;
+            }
+            else
+            {
+                #if defined(PLATFORM_DREAMCAST)
+                ((unsigned int *)imFont.data)[i + j] = 0x000000ff;
+                #endif
+                #if defined(PLATFORM_NINTENDO64)
+                ((unsigned int *)imFont.data)[i + j] = 0xff000000;
+                #endif
+            
+            }
+        }
+
+        counter++;
+    }
+#else
     Image imFont = {
         .data = RL_CALLOC(128*128, 2),  // 2 bytes per pixel (gray + alpha)
         .width = 128,
@@ -252,9 +291,15 @@ extern void LoadFontDefault(void)
 
         counter++;
     }
-
+#endif
+#if defined(PLATFORM_NINTENDO64)
+    defaultFont.texture.width = imFont.width;
+    defaultFont.texture.height = imFont.height;
+    defaultFont.texture.mipmaps = 1;
+    defaultFont.texture.format = imFont.format;
+#else
     if (isGpuReady) defaultFont.texture = LoadTextureFromImage(imFont);
-
+#endif
     // Reconstruct charSet using charsWidth[], charsHeight, charsDivisor, glyphCount
     //------------------------------------------------------------------------------
 
@@ -297,7 +342,10 @@ extern void LoadFontDefault(void)
         // Fill character image data from fontClear data
         defaultFont.glyphs[i].image = ImageFromImage(imFont, defaultFont.recs[i]);
     }
-
+#if defined(PLATFORM_NINTENDO64) //We load only glyph 95 to use with shapes
+    rayDefaultFontGliphGlTextureInit(defaultFont,95);
+    defaultFont.texture = rayDefaultFontsGetTextureFromGlyph(95);
+#endif
     UnloadImage(imFont);
 
     defaultFont.baseSize = (int)defaultFont.recs[0].height;
@@ -1174,6 +1222,9 @@ void DrawTextEx(Font font, const char *text, Vector2 position, float fontSize, f
         {
             if ((codepoint != ' ') && (codepoint != '\t'))
             {
+#if defined(PLATFORM_NINTENDO64)
+                rayDefaultFontGliphGlTextureInit(font,index);
+#endif
                 DrawTextCodepoint(font, codepoint, (Vector2){ position.x + textOffsetX, position.y + textOffsetY }, fontSize, tint);
             }
 
@@ -1216,11 +1267,17 @@ void DrawTextCodepoint(Font font, int codepoint, Vector2 position, float fontSiz
 
     // Character source rectangle from font texture atlas
     // NOTE: We consider chars padding when drawing, it could be required for outline/glow shader effects
+#if defined(PLATFORM_NINTENDO64)
+    Rectangle srcRec = { 0.0f - (float)font.glyphPadding, 0.0f - (float)font.glyphPadding,font.recs[index].width + 2.0f*font.glyphPadding, font.recs[index].height + 2.0f*font.glyphPadding };
+    // Draw the character texture on the screen
+    DrawTexturePro(rayDefaultFontsGetTextureFromGlyph(index), srcRec, dstRec, (Vector2){ 0, 0 }, 0.0f, tint);
+#else
     Rectangle srcRec = { font.recs[index].x - (float)font.glyphPadding, font.recs[index].y - (float)font.glyphPadding,
                          font.recs[index].width + 2.0f*font.glyphPadding, font.recs[index].height + 2.0f*font.glyphPadding };
 
     // Draw the character texture on the screen
     DrawTexturePro(font.texture, srcRec, dstRec, (Vector2){ 0, 0 }, 0.0f, tint);
+#endif
 }
 
 // Draw multiple character (codepoints)

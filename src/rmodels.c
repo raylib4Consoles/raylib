@@ -1065,7 +1065,34 @@ void DrawRay(Ray ray, Color color)
 void DrawGrid(int slices, float spacing)
 {
     int halfSlices = slices/2;
+ #if defined(PLATFORM_DREAMCAST)
 
+    rlBegin(RL_QUADS);
+    for (int i = -halfSlices; i < halfSlices; i++) {
+        if (i == 0) {
+            rlColor3f(1.0f, 0.5f, 0.5f);
+            rlColor3f(1.0f, 0.5f, 0.5f);
+            rlColor3f(1.0f, 0.5f, 0.5f);
+            rlColor3f(1.0f, 0.5f, 0.5f);
+        } else {
+            rlColor3f(1.0f, 0.75f, 0.75f);
+            rlColor3f(1.0f, 0.75f, 0.75f);
+            rlColor3f(1.0f, 0.75f, 0.75f);
+            rlColor3f(1.0f, 0.75f, 0.75f);
+        }
+
+        float x1 = (float)i * spacing;
+        float x2 = (float)(i + 1) * spacing;
+        float z1 = (float)-halfSlices * spacing;
+        float z2 = (float)halfSlices * spacing;
+
+        // Define the vertices for the quad
+        rlVertex3f(x1, 0.0f, z1);
+        rlVertex3f(x2, 0.0f, z1);
+        rlVertex3f(x2, 0.0f, z2);
+        rlVertex3f(x1, 0.0f, z2);
+    }
+#else
     rlBegin(RL_LINES);
         for (int i = -halfSlices; i <= halfSlices; i++)
         {
@@ -1085,6 +1112,7 @@ void DrawGrid(int slices, float spacing)
             rlVertex3f((float)halfSlices*spacing, 0.0f, (float)i*spacing);
         }
     rlEnd();
+#endif
 }
 
 // Load model from files (mesh and material)
@@ -1276,7 +1304,7 @@ void UploadMesh(Mesh *mesh, bool dynamic)
 
     // WARNING: When setting default vertex attribute values, the values for each generic vertex attribute
     // is part of current state, and it is maintained even if a different program object is used
-
+#if !defined(PLATFORM_VITA)
     if (mesh->normals != NULL)
     {
         // Enable vertex attributes: normals (shader-location = 2)
@@ -1293,7 +1321,7 @@ void UploadMesh(Mesh *mesh, bool dynamic)
         rlSetVertexAttributeDefault(RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL, value, SHADER_ATTRIB_VEC3, 3);
         rlDisableVertexAttribute(RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL);
     }
-
+#endif
     if (mesh->colors != NULL)
     {
         // Enable vertex attribute: color (shader-location = 3)
@@ -1485,10 +1513,10 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
 
     // Get model-view matrix
     matModelView = MatrixMultiply(matModel, matView);
-
+#if !defined(PLATFORM_VITA)
     // Upload model normal matrix (if locations available)
     if (material.shader.locs[SHADER_LOC_MATRIX_NORMAL] != -1) rlSetUniformMatrix(material.shader.locs[SHADER_LOC_MATRIX_NORMAL], MatrixTranspose(MatrixInvert(matModel)));
-
+#endif
 #ifdef RL_SUPPORT_MESH_ANIMATION_VBO
     // Upload Bone Transforms    
     if (material.shader.locs[SHADER_LOC_BONE_MATRICES] != -1 && mesh.boneMatrices)
@@ -1531,7 +1559,7 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
         rlEnableVertexBuffer(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD]);
         rlSetVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_TEXCOORD01], 2, RL_FLOAT, 0, 0, 0);
         rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_TEXCOORD01]);
-
+#if !defined(PLATFORM_VITA)
         if (material.shader.locs[SHADER_LOC_VERTEX_NORMAL] != -1)
         {
             // Bind mesh VBO data: vertex normals (shader-location = 2)
@@ -1539,7 +1567,7 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
             rlSetVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_NORMAL], 3, RL_FLOAT, 0, 0, 0);
             rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_NORMAL]);
         }
-
+#endif
         // Bind mesh VBO data: vertex colors (shader-location = 3, if available)
         if (material.shader.locs[SHADER_LOC_VERTEX_COLOR] != -1)
         {
@@ -1593,7 +1621,14 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
         }
 #endif
 
-        if (mesh.indices != NULL) rlEnableVertexBufferElement(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES]);
+        if (mesh.indices != NULL) 
+        {
+#if defined(PLATFORM_PROSPERO)
+            rlDrawVertexArrayElements(0, mesh.triangleCount*3, mesh.indices);
+#else
+            rlEnableVertexBufferElement(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES]);
+#endif
+        }    
     }
 
     int eyeCount = 1;
@@ -1731,10 +1766,10 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
     // Accumulate internal matrix transform (push/pop) and view matrix
     // NOTE: In this case, model instance transformation must be computed in the shader
     matModelView = MatrixMultiply(rlGetMatrixTransform(), matView);
-
+#if !defined(PLATFORM_VITA)
     // Upload model normal matrix (if locations available)
     if (material.shader.locs[SHADER_LOC_MATRIX_NORMAL] != -1) rlSetUniformMatrix(material.shader.locs[SHADER_LOC_MATRIX_NORMAL], MatrixTranspose(MatrixInvert(matModel)));
-    
+#endif    
 #ifdef RL_SUPPORT_MESH_ANIMATION_VBO
     // Upload Bone Transforms    
     if (material.shader.locs[SHADER_LOC_BONE_MATRICES] != -1 && mesh.boneMatrices)
@@ -1776,7 +1811,7 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
         rlEnableVertexBuffer(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD]);
         rlSetVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_TEXCOORD01], 2, RL_FLOAT, 0, 0, 0);
         rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_TEXCOORD01]);
-
+#if !defined(PLATFORM_VITA)
         if (material.shader.locs[SHADER_LOC_VERTEX_NORMAL] != -1)
         {
             // Bind mesh VBO data: vertex normals (shader-location = 2)
@@ -1784,7 +1819,7 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
             rlSetVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_NORMAL], 3, RL_FLOAT, 0, 0, 0);
             rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_NORMAL]);
         }
-
+#endif
         // Bind mesh VBO data: vertex colors (shader-location = 3, if available)
         if (material.shader.locs[SHADER_LOC_VERTEX_COLOR] != -1)
         {
@@ -1903,7 +1938,9 @@ void UnloadMesh(Mesh mesh)
 
     RL_FREE(mesh.vertices);
     RL_FREE(mesh.texcoords);
+#if !defined(PLATFORM_VITA)
     RL_FREE(mesh.normals);
+#endif
     RL_FREE(mesh.colors);
     RL_FREE(mesh.tangents);
     RL_FREE(mesh.texcoords2);
@@ -4229,11 +4266,12 @@ static Model LoadOBJ(const char *fileName)
     char currentDir[1024] = { 0 };
     strcpy(currentDir, GetWorkingDirectory()); // Save current working directory
     const char* workingDir = GetDirectoryPath(fileName); // Switch to OBJ directory for material path correctness
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     if (CHDIR(workingDir) != 0)
     {
         TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to change working directory", workingDir);
     }
-
+#endif
     unsigned int dataSize = (unsigned int)strlen(fileText);
 
     unsigned int flags = TINYOBJ_FLAG_TRIANGULATE;
@@ -4435,11 +4473,12 @@ static Model LoadOBJ(const char *fileName)
         UploadMesh(model.meshes + i, true);
 
     // Restore current working directory
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)    
     if (CHDIR(currentDir) != 0)
     {
         TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to change working directory", currentDir);
     }
-
+#endif
     return model;
 }
 #endif

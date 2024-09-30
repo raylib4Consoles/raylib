@@ -27,6 +27,16 @@
 #         - Linux DRM subsystem (KMS mode)
 #     > PLATFORM_ANDROID:
 #         - Android (ARM, ARM64)
+#     > PLATFORM_DREAMCAST:
+#         - Sega Dreamcast (SH4)
+#     > PLATFORM_NINTENDO64:
+#         - Nintendo 64 (MIPS4300)
+#     > PLATFORM_VITA:
+#         - PlayStation Vita
+#     > PLATFORM_ORBIS:
+#         - PlayStation 4 Orbis
+#     > PLATFORM_PROSPERO:
+#         - PlayStation 5 Prospero
 #
 #   Many thanks to Milan Nikolic (@gen2brain) for implementing Android platform pipeline.
 #   Many thanks to Emanuele Petriglia for his contribution on GNU/Linux pipeline.
@@ -57,8 +67,8 @@
 
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
-# Define target platform
-PLATFORM             ?= PLATFORM_DESKTOP
+# Define target platform: PLATFORM_DESKTOP, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB, PLATFORM_DREAMCAST, PLATFORM_NINTENDO64 ,PLATFORM_VITA, PLATFORM_ORBIS, PLATFORM_PROSPERO
+PLATFORM             ?= PLATFORM_DREAMCAST
 
 ifeq ($(PLATFORM), PLATFORM_DESKTOP)
     TARGET_PLATFORM = PLATFORM_DESKTOP_GLFW
@@ -101,6 +111,7 @@ RAYLIB_CONFIG_FLAGS  ?= NONE
 RAYLIB_MODULE_AUDIO  ?= TRUE
 RAYLIB_MODULE_MODELS ?= TRUE
 RAYLIB_MODULE_RAYGUI ?= FALSE
+RAYLIB_MODULE_SPINE  ?= FALSE
 
 # NOTE: Additional libraries have been moved to their own repos:
 # raygui: https://github.com/raysan5/raygui
@@ -228,6 +239,34 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
 
 endif
 
+#Dreamcast
+ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
+    PLATFORM_OS = DREAMCAST
+    PLATFORM_SHELL = sh
+endif
+
+#Nintendo64
+ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
+    PLATFORM_OS = NINTENDO64
+    PLATFORM_SHELL = sh
+endif
+
+#PlayStation Platforms
+ifeq ($(PLATFORM),PLATFORM_VITA)
+    PLATFORM_OS = VITA
+    PLATFORM_SHELL = sh
+endif
+
+ifeq ($(PLATFORM),PLATFORM_ORBIS)
+    PLATFORM_OS = ORBIS
+    PLATFORM_SHELL = sh
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PROSPERO)
+    PLATFORM_OS = PROSPERO
+    PLATFORM_SHELL = sh
+endif
+
 # Define raylib graphics api depending on selected platform
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
     # By default use OpenGL 3.3 on desktop platforms
@@ -260,6 +299,31 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
     # By default use OpenGL ES 2.0 on Android
+    GRAPHICS = GRAPHICS_API_OPENGL_ES2
+endif
+
+ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
+    # By default use OpenGL 1.1 on DREAMCAST
+    GRAPHICS = GRAPHICS_API_OPENGL_11
+endif
+
+ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
+    # By default use OpenGL 1.1 on NINTENDO64
+    GRAPHICS = GRAPHICS_API_OPENGL_11
+endif
+
+ifeq ($(PLATFORM),PLATFORM_VITA)
+    # By default use OpenGL ES 2.0 on VITA
+    GRAPHICS = GRAPHICS_API_OPENGL_ES2
+endif
+
+ifeq ($(PLATFORM),PLATFORM_ORBIS)
+    # By default use OpenGL ES 2.0 on ORBIS
+    GRAPHICS = GRAPHICS_API_OPENGL_ES2
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PROSPERO)
+    # By default use OpenGL ES 2.0 on PROSPERO
     GRAPHICS = GRAPHICS_API_OPENGL_ES2
 endif
 
@@ -310,6 +374,32 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
     AR = $(ANDROID_TOOLCHAIN)/bin/llvm-ar
 endif
 
+ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
+include $(N64_INST)/include/raylib4Nintendo64.mk
+    CC = $(N64_CC)
+    AR = $(N64_AR)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
+    CC = $(KOS_CC)
+    AR = $(KOS_AR)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_VITA)
+    CC = arm-vita-eabi-gcc
+    AR = arm-vita-eabi-ar
+endif
+
+ifeq ($(PLATFORM),PLATFORM_ORBIS)
+    CC = clang
+    AR = orbis-ar
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PROSPERO)
+    CC = $(PS5_PAYLOAD_SDK)/bin/prospero-clang -v
+    AR = $(PS5_PAYLOAD_SDK)/bin/llvm-ar
+endif
+
 # Define compiler flags: CFLAGS
 #------------------------------------------------------------------------------------------------
 #  -O1                      defines optimization level
@@ -324,7 +414,7 @@ endif
 #  -D_GNU_SOURCE            access to lots of nonstandard GNU/Linux extension functions
 #  -Werror=pointer-arith    catch unportable code that does direct arithmetic on void pointers
 #  -fno-strict-aliasing     jar_xm.h does shady stuff (breaks strict aliasing)
-CFLAGS = -Wall -D_GNU_SOURCE -D$(TARGET_PLATFORM) -D$(GRAPHICS) -Wno-missing-braces -Werror=pointer-arith -fno-strict-aliasing
+CFLAGS = -Wall -D_GNU_SOURCE -D$(TARGET_PLATFORM) -D$(GRAPHICS) -Wno-missing-braces -Werror=pointer-arith -fno-strict-aliasing $(CUSTOM_CFLAGS)
 
 ifneq ($(RAYLIB_CONFIG_FLAGS), NONE)
     CFLAGS += -DEXTERNAL_CONFIG_FLAGS $(RAYLIB_CONFIG_FLAGS)
@@ -462,6 +552,33 @@ CFLAGS += $(CUSTOM_CFLAGS)
 # NOTE: Several external required libraries (stb and others)
 #------------------------------------------------------------------------------------------------
 INCLUDE_PATHS = -I. 
+
+ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
+    CFLAGS = $(N64_CFLAGS) -Wno-error=incompatible-pointer-types -D$(PLATFORM) -D$(GRAPHICS) 
+    INCLUDE_PATHS = $(N64_INCLUDEDIR)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
+    CFLAGS = $(KOS_CFLAGS) -Wno-error=incompatible-pointer-types -D$(PLATFORM) -D$(GRAPHICS) 
+    INCLUDE_PATHS = $(KOS_INC_PATHS)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_VITA)
+    CFLAGS = -Wl,-q -Wall -Wno-incompatible-pointer-types -Wno-pointer-sign -O3 -nostartfiles -DVITA -D$(PLATFORM) -D$(GRAPHICS) 
+    INCLUDE_PATHS = -I.
+endif
+
+ifeq ($(PLATFORM),PLATFORM_ORBIS)
+    CFLAGS = -std=c11 -O3 -Wall --target=x86_64-sce-ps4 -D__PS4__ -D__ORBIS__ -D$(PLATFORM) -D$(GRAPHICS)
+    INCLUDE_PATHS = -isysroot $(ORBISDEV) -I. -Iinclude -I$(ORBISDEV)/usr/include/orbis 
+    LDFLAGS = -L$(ORBISDEV)/usr/lib -L. -Llib
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PROSPERO)
+    CFLAGS = -std=c11 -O3 -Wall  -D__PS5__ -D__PROSPERO__ -D$(PLATFORM) -D$(GRAPHICS)
+    INCLUDE_PATHS =  -I. -Iinclude -I$(PS5_PAYLOAD_SDK)/target/include/prospero
+    LDFLAGS = -L$(PS5_PAYLOAD_SDK)/target/lib -L. -Llib
+endif
 
 # Define additional directories containing required header files
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
@@ -650,6 +767,10 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
     OBJS += android_native_app_glue.o
 endif
 
+ifeq ($(RAYLIB_MODULE_SPINE),TRUE)
+    OBJS += rspine.o
+endif
+
 # Define processes to execute
 #------------------------------------------------------------------------------------------------
 # Default target entry
@@ -756,6 +877,10 @@ rmodels.o : rmodels.c raylib.h rlgl.h raymath.h
 raudio.o : raudio.c raylib.h
 	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
 
+# Compile spine module
+rspine.o : rspine.c raylib.h rlgl.h raymath.h utils.h
+	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
+
 # Compile raygui module
 # NOTE: raygui header should be distributed with raylib.h
 raygui.o : raygui.c
@@ -785,69 +910,70 @@ android_native_app_glue.o : $(NATIVE_APP_GLUE)/android_native_app_glue.c
 # See below and ../examples/Makefile for more information.
 
 # RAYLIB_INSTALL_PATH should be the desired full path to libraylib. No relative paths.
-DESTDIR ?= /usr/local
-RAYLIB_INSTALL_PATH ?= $(DESTDIR)/lib
+#DESTDIR ?= /usr/local
+
+ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
+PREFIX ?= $(N64_ROOTDIR)/mips64-elf
+endif
+
+ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
+PREFIX ?= $(KOS_PORTS)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_VITA)
+PREFIX ?= $(VITASDK)/arm-vita-eabi
+endif
+
+ifeq ($(PLATFORM),PLATFORM_ORBIS)
+PREFIX ?= $(ORBISDEV)/usr
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PROSPERO)
+PREFIX ?= $(PS5_PAYLOAD_SDK)/target
+endif
+RAYLIB_INSTALL_PATH ?= $(DESTDIR)$(PREFIX)/lib
 # RAYLIB_H_INSTALL_PATH locates the installed raylib header and associated source files.
-RAYLIB_H_INSTALL_PATH ?= $(DESTDIR)/include
+RAYLIB_H_INSTALL_PATH ?= $(DESTDIR)$(PREFIX)/include
+
 
 install :
-ifeq ($(ROOT),root)
-    ifeq ($(PLATFORM_OS),LINUX)
-        # Attention! You are root, writing files to $(RAYLIB_INSTALL_PATH)
-        # and $(RAYLIB_H_INSTALL_PATH). Consult this Makefile for more information.
-        # Prepare the environment as needed.
-		mkdir --parents --verbose $(RAYLIB_INSTALL_PATH)
-		mkdir --parents --verbose $(RAYLIB_H_INSTALL_PATH)
-        ifeq ($(RAYLIB_LIBTYPE),SHARED)
-            # Installing raylib to $(RAYLIB_INSTALL_PATH).
-			cp --update --verbose $(RAYLIB_RELEASE_PATH)/libraylib.so.$(RAYLIB_VERSION) $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION)
-			cd $(RAYLIB_INSTALL_PATH); ln -fsv lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION) lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION)
-			cd $(RAYLIB_INSTALL_PATH); ln -fsv lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION) lib$(RAYLIB_LIB_NAME).so
-            # Uncomment to update the runtime linker cache with RAYLIB_INSTALL_PATH.
-            # Not necessary if later embedding RPATH in your executable. See examples/Makefile.
-			ldconfig $(RAYLIB_INSTALL_PATH)
-        else
-            # Installing raylib to $(RAYLIB_INSTALL_PATH).
-			cp --update --verbose $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).a
-        endif
-        # Copying raylib development files to $(RAYLIB_H_INSTALL_PATH).
-		cp --update raylib.h $(RAYLIB_H_INSTALL_PATH)/raylib.h
-		cp --update raymath.h $(RAYLIB_H_INSTALL_PATH)/raymath.h
-		cp --update rlgl.h $(RAYLIB_H_INSTALL_PATH)/rlgl.h
-		@echo "raylib development files installed/updated!"
-    else
-		@echo "This function currently works on GNU/Linux systems. Add yours today (^;"
-    endif
-else
-	@echo "Error: Root permissions needed for installation. Try sudo make install"
+	mkdir -p $(RAYLIB_INSTALL_PATH)
+	mkdir -p $(RAYLIB_H_INSTALL_PATH)
+ifeq ($(OS),Windows_NT)
+	copy /Y $(RAYLIB_RELEASE_PATH)\\lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)\\lib$(RAYLIB_LIB_NAME).a
+	copy /Y raylib.h $(RAYLIB_H_INSTALL_PATH)\\raylib.h
+	copy /Y raymath.h $(RAYLIB_H_INSTALL_PATH)\\raymath.h
+	copy /Y rlgl.h $(RAYLIB_H_INSTALL_PATH)\\rlgl.h
+	#cp --update rayspine.h $(RAYLIB_H_INSTALL_PATH)/rayspine.h
+	#cp --update $(RAYLIB_MODULE_PHYSAC_PATH)/physac.h $(RAYLIB_H_INSTALL_PATH)/physac.h
+else ifeq ($(OS),Darwin) # macOS
+	rsync -u $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).a
+	rsync -u raylib.h $(RAYLIB_H_INSTALL_PATH)/raylib.h
+	rsync -u raymath.h $(RAYLIB_H_INSTALL_PATH)/raymath.h
+	rsync -u rlgl.h $(RAYLIB_H_INSTALL_PATH)/rlgl.h
+	#rsync -u rayspine.h $(RAYLIB_H_INSTALL_PATH)/rayspine.h
+	#rsync -u $(RAYLIB_MODULE_PHYSAC_PATH)/physac.h $(RAYLIB_H_INSTALL_PATH)/physac.h
+else # Linux
+	cp --update --verbose $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).a
+	cp --update raylib.h $(RAYLIB_H_INSTALL_PATH)/raylib.h
+	cp --update raymath.h $(RAYLIB_H_INSTALL_PATH)/raymath.h
+	cp --update rlgl.h $(RAYLIB_H_INSTALL_PATH)/rlgl.h
+	#cp --update rayspine.h $(RAYLIB_H_INSTALL_PATH)/rayspine.h
+	#cp --update $(RAYLIB_MODULE_PHYSAC_PATH)/physac.h $(RAYLIB_H_INSTALL_PATH)/physac.h
 endif
+	@echo "raylib development files installed/updated!"
+
 
 # Remove raylib dev files installed on the system
 # NOTE: see 'install' target.
 uninstall :
-ifeq ($(ROOT),root)
-    # WARNING: You are root, about to delete items from $(RAYLIB_INSTALL_PATH).
-    # and $(RAYLIB_H_INSTALL_PATH). Please confirm each item.
-    ifeq ($(PLATFORM_OS),LINUX)
-        ifeq ($(RAYLIB_LIBTYPE),SHARED)
-			rm --force --interactive --verbose $(RAYLIB_INSTALL_PATH)/libraylib.so
-			rm --force --interactive --verbose $(RAYLIB_INSTALL_PATH)/libraylib.so.$(RAYLIB_API_VERSION)
-			rm --force --interactive --verbose $(RAYLIB_INSTALL_PATH)/libraylib.so.$(RAYLIB_VERSION)
-            # Uncomment to clean up the runtime linker cache. See install target.
-			ldconfig
-        else
-			rm --force --interactive --verbose $(RAYLIB_INSTALL_PATH)/libraylib.a
-        endif
-		rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/raylib.h
-		rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/raymath.h
-		rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/rlgl.h
-		@echo "raylib development files removed!"
-    else
-		@echo "This function currently works on GNU/Linux systems. Add yours today (^;"
-    endif
-else
-	@echo "Error: Root permissions needed for uninstallation. Try sudo make uninstall"
-endif
+	rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/raylib.h
+	rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/raymath.h
+	rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/rlgl.h
+	#rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/physac.h
+	#rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/rayspine.h
+	@echo "raylib development files removed!"
+
 
 .PHONY: clean_shell_cmd clean_shell_sh
 

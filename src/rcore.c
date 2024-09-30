@@ -19,7 +19,16 @@
 *           - Linux DRM subsystem (KMS mode)
 *       > PLATFORM_ANDROID:
 *           - Android (ARM, ARM64)
-*
+*       > PLATFORM_DREAMCAST:
+*           - Sega Dreamcast (SH4)
+*       > PLATFORM_NINTENDO64:
+*           - Nintendo 64 (MIPS4300)
+*       > PLATFORM_VITA:
+*           - PlayStation Vita
+*       > PLATFORM_ORBIS:
+*           - PlayStation 4 Orbis
+*       > PLATFORM_PROSPERO:
+*           - PlayStation 5 Prospero
 *   CONFIGURATION:
 *       #define SUPPORT_DEFAULT_FONT (default)
 *           Default font is loaded on window initialization to be available for the user to render simple text.
@@ -187,7 +196,11 @@ unsigned int __stdcall timeEndPeriod(unsigned int uPeriod);
 
     #include "external/dirent.h"    // Required for: DIR, opendir(), closedir() [Used in LoadDirectoryFiles()]
 #else
+#if defined(PLATFORM_NINTENDO64)
+//avoid dirent on Nintendo 64
+#else
     #include <dirent.h>             // Required for: DIR, opendir(), closedir() [Used in LoadDirectoryFiles()]
+#endif
 #endif
 
 #if defined(_WIN32)
@@ -525,6 +538,16 @@ const char *TextFormat(const char *text, ...);              // Formatting of tex
     #include "platforms/rcore_drm.c"
 #elif defined(PLATFORM_ANDROID)
     #include "platforms/rcore_android.c"
+#elif defined(PLATFORM_DREAMCAST)
+    #include "platforms/rcore_dreamcast.c"
+#elif defined(PLATFORM_NINTENDO64)
+    #include "platforms/rcore_nintendo64.c"
+#elif defined(PLATFORM_VITA)
+    #include "platforms/rcore_vita.c"
+#elif defined(PLATFORM_ORBIS)
+    #include "platforms/rcore_orbis.c"
+#elif defined(PLATFORM_PROSPERO)
+    #include "platforms/rcore_prospero.c"
 #else
     // TODO: Include your custom platform backend!
     // i.e software rendering backend or console backend!
@@ -581,6 +604,9 @@ const char *TextFormat(const char *text, ...);              // Formatting of tex
 // NOTE: data parameter could be used to pass any kind of required data to the initialization
 void InitWindow(int width, int height, const char *title)
 {
+#if defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+    SetTraceLogCallback(CustomLog);
+#endif  
     TRACELOG(LOG_INFO, "Initializing raylib %s", RAYLIB_VERSION);
 
 #if defined(PLATFORM_DESKTOP_GLFW)
@@ -595,6 +621,16 @@ void InitWindow(int width, int height, const char *title)
     TRACELOG(LOG_INFO, "Platform backend: NATIVE DRM");
 #elif defined(PLATFORM_ANDROID)
     TRACELOG(LOG_INFO, "Platform backend: ANDROID");
+#elif defined(PLATFORM_DREAMCAST)
+    TRACELOG(LOG_INFO, "Platform backend: DREAMCAST");
+#elif defined(PLATFORM_NINTENDO64)
+    TRACELOG(LOG_INFO, "Platform backend: NINTENDO64");
+#elif defined(PLATFORM_VITA)
+    TRACELOG(LOG_INFO, "Platform backend: VITA");
+#elif defined(PLATFORM_ORBIS)
+    TRACELOG(LOG_INFO, "Platform backend: ORBIS");
+#elif defined(PLATFORM_PROSPERO)
+    TRACELOG(LOG_INFO, "Platform backend: PROSPERO");
 #else
     // TODO: Include your custom platform backend!
     // i.e software rendering backend or console backend!
@@ -646,7 +682,16 @@ void InitWindow(int width, int height, const char *title)
 
     // Initialize platform
     //--------------------------------------------------------------
+#if defined(PLATFORM_VITA) ||defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+    int ret=InitPlatform();
+    if(ret!=0)
+    {
+        TRACELOG(LOG_ERROR, "PLATFORM: Application not initialized");
+        return;
+    }
+#else
     InitPlatform();
+#endif
     //--------------------------------------------------------------
 
     // Initialize rlgl default data (buffers and shaders)
@@ -665,7 +710,11 @@ void InitWindow(int width, int height, const char *title)
         #if defined(SUPPORT_MODULE_RSHAPES)
         // Set font white rectangle for shapes drawing, so shapes and text can be batched together
         // WARNING: rshapes module is required, if not available, default internal white rectangle is used
+        #if defined(PLATFORM_NINTENDO64)
+        Rectangle rec=(Rectangle){ 0.0f, 0.0f, 5.0f, 10.0f };
+        #else
         Rectangle rec = GetFontDefault().recs[95];
+        #endif
         if (CORE.Window.flags & FLAG_MSAA_4X_HINT)
         {
             // NOTE: We try to maxime rec padding to avoid pixel bleeding on MSAA filtering
@@ -692,8 +741,11 @@ void InitWindow(int width, int height, const char *title)
 
     // Initialize random seed
     SetRandomSeed((unsigned int)time(NULL));
-    
+    #if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+    TRACELOG(LOG_INFO, "PLATFORM: Application initialized successfully");
+#else
     TRACELOG(LOG_INFO, "SYSTEM: Working Directory: %s", GetWorkingDirectory());
+#endif
 }
 
 // Close window and unload OpenGL context
@@ -849,7 +901,13 @@ void BeginDrawing(void)
 {
     // WARNING: Previously to BeginDrawing() other render textures drawing could happen,
     // consequently the measure for update vs draw is not accurate (only the total frame time is accurate)
+#if defined(PLATFORM_NINTENDO64)
+    platform.disp = display_get();
 
+    rdpq_attach(platform.disp, &platform.zbuffer);
+
+    gl_context_begin();
+#endif
     CORE.Time.current = GetTime();      // Number of elapsed seconds since InitTimer()
     CORE.Time.update = CORE.Time.current - CORE.Time.previous;
     CORE.Time.previous = CORE.Time.current;
@@ -1923,6 +1981,7 @@ bool IsFileExtension(const char *fileName, const char *ext)
 bool DirectoryExists(const char *dirPath)
 {
     bool result = false;
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     DIR *dir = opendir(dirPath);
 
     if (dir != NULL)
@@ -1930,7 +1989,7 @@ bool DirectoryExists(const char *dirPath)
         result = true;
         closedir(dir);
     }
-
+#endif
     return result;
 }
 
@@ -2099,9 +2158,11 @@ const char *GetWorkingDirectory(void)
 {
     static char currentDir[MAX_FILEPATH_LENGTH] = { 0 };
     memset(currentDir, 0, MAX_FILEPATH_LENGTH);
-
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     char *path = GETCWD(currentDir, MAX_FILEPATH_LENGTH - 1);
-
+#else
+    char *path = ".";
+#endif
     return path;
 }
 
@@ -2211,7 +2272,7 @@ FilePathList LoadDirectoryFiles(const char *dirPath)
 {
     FilePathList files = { 0 };
     unsigned int fileCounter = 0;
-
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     struct dirent *entity;
     DIR *dir = opendir(dirPath);
 
@@ -2239,7 +2300,7 @@ FilePathList LoadDirectoryFiles(const char *dirPath)
         if (files.count != files.capacity) TRACELOG(LOG_WARNING, "FILEIO: Read files count do not match capacity allocated");
     }
     else TRACELOG(LOG_WARNING, "FILEIO: Failed to open requested directory");  // Maybe it's a file...
-
+#endif
     return files;
 }
 
@@ -2306,10 +2367,13 @@ int MakeDirectory(const char *dirPath)
 // Change working directory, returns true on success
 bool ChangeDirectory(const char *dir)
 {
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     bool result = CHDIR(dir);
 
     if (result != 0) TRACELOG(LOG_WARNING, "SYSTEM: Failed to change to directory: %s", dir);
-
+#else
+    bool result=1;
+#endif
     return (result == 0);
 }
 
@@ -3240,7 +3304,7 @@ void InitTimer(void)
     timeBeginPeriod(1);                 // Setup high-resolution timer to 1ms (granularity of 1-2 ms)
 #endif
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__) || defined(PLATFORM_DREAMCAST) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
     struct timespec now = { 0 };
 
     if (clock_gettime(CLOCK_MONOTONIC, &now) == 0)  // Success
@@ -3249,7 +3313,14 @@ void InitTimer(void)
     }
     else TRACELOG(LOG_WARNING, "TIMER: Hi-resolution timer not available");
 #endif
-
+#if defined(PLATFORM_NINTENDO64)
+    disable_interrupts();
+    CORE.Time.base = get_ticks_us();
+    enable_interrupts();
+#endif
+#if defined(PLATFORM_VITA)
+    CORE.Time.base=sceKernelGetProcessTimeWide();
+#endif
     CORE.Time.previous = GetTime();     // Get time as double
 }
 
@@ -3274,8 +3345,11 @@ void SetupViewport(int width, int height)
 
     // Set orthographic projection to current framebuffer size
     // NOTE: Configured top-left corner as (0, 0)
+#if defined(PLATFORM_DREAMCAST) || defined(PLATFORM_NINTENDO64)
+    rlOrtho(0, CORE.Window.render.width, CORE.Window.render.height, 0, -1.0f, 1.0f);
+#else
     rlOrtho(0, CORE.Window.render.width, CORE.Window.render.height, 0, 0.0f, 1.0f);
-
+#endif
     rlMatrixMode(RL_MODELVIEW);         // Switch back to modelview matrix
     rlLoadIdentity();                   // Reset current matrix (modelview)
 }
@@ -3365,7 +3439,7 @@ static void ScanDirectoryFiles(const char *basePath, FilePathList *files, const 
 {
     static char path[MAX_FILEPATH_LENGTH] = { 0 };
     memset(path, 0, MAX_FILEPATH_LENGTH);
-
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     struct dirent *dp = NULL;
     DIR *dir = opendir(basePath);
 
@@ -3412,6 +3486,7 @@ static void ScanDirectoryFiles(const char *basePath, FilePathList *files, const 
         closedir(dir);
     }
     else TRACELOG(LOG_WARNING, "FILEIO: Directory cannot be opened (%s)", basePath);
+#endif
 }
 
 // Scan all files and directories recursively from a base path
@@ -3419,7 +3494,7 @@ static void ScanDirectoryFilesRecursively(const char *basePath, FilePathList *fi
 {
     char path[MAX_FILEPATH_LENGTH] = { 0 };
     memset(path, 0, MAX_FILEPATH_LENGTH);
-
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     struct dirent *dp = NULL;
     DIR *dir = opendir(basePath);
 
@@ -3480,6 +3555,7 @@ static void ScanDirectoryFilesRecursively(const char *basePath, FilePathList *fi
         closedir(dir);
     }
     else TRACELOG(LOG_WARNING, "FILEIO: Directory cannot be opened (%s)", basePath);
+#endif
 }
 
 #if defined(SUPPORT_AUTOMATION_EVENTS)

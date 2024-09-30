@@ -31,7 +31,11 @@
     #include <stdio.h>                      // Required for: FILE
     #include <android/asset_manager.h>      // Required for: AAssetManager
 #endif
-
+#if defined(PLATFORM_VITA)
+int debugNetInit(const char *serverIp, int port, int level);
+void debugNetUDPSend(const char *text);
+void debugNetUDPPrintf(const char *format, ...);
+#endif
 #if defined(SUPPORT_TRACELOG)
     #define TRACELOG(level, ...) TraceLog(level, __VA_ARGS__)
 

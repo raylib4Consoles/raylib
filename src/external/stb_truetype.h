@@ -3042,15 +3042,25 @@ static void stbtt__handle_clipped_edge(float *scanline, int x, stbtt__active_edg
    }
 
    if (x0 == x)
+   {
       STBTT_assert(x1 <= x+1);
+   }
    else if (x0 == x+1)
+   {
       STBTT_assert(x1 >= x);
+   }
    else if (x0 <= x)
+   {
       STBTT_assert(x1 <= x);
+   }
    else if (x0 >= x+1)
+   {
       STBTT_assert(x1 >= x+1);
+   }
    else
+   {
       STBTT_assert(x1 >= x && x1 <= x+1);
+   }
 
    if (x0 <= x && x1 <= x)
       scanline[x] += e->direction * (y1-y0);
