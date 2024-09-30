@@ -259,6 +259,7 @@ extern void LoadFontDefault(void)
         .mipmaps = 1,
         .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
     };
+
     //#endif
     // Fill image.data with defaultFontData (convert from bit to pixel!)
     for (int i = 0, counter = 0; i < imFont.width*imFont.height; i += 32)

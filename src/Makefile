@@ -117,6 +117,7 @@ RAYLIB_CONFIG_FLAGS  ?= NONE
 RAYLIB_MODULE_AUDIO  ?= TRUE
 RAYLIB_MODULE_MODELS ?= TRUE
 RAYLIB_MODULE_RAYGUI ?= FALSE
+RAYLIB_MODULE_SPINE  ?= FALSE
 
 # NOTE: Additional libraries have been moved to their own repos:
 # raygui: https://github.com/raysan5/raygui
