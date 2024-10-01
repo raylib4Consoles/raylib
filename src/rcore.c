@@ -741,7 +741,10 @@ void InitWindow(int width, int height, const char *title)
 
     // Initialize random seed
     SetRandomSeed((unsigned int)time(NULL));
-    #if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+#if defined(PLATFORM_NINTENDO64)
+    SwapScreenBuffer();
+#endif
+#if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
     TRACELOG(LOG_INFO, "PLATFORM: Application initialized successfully");
 #else
     TRACELOG(LOG_INFO, "SYSTEM: Working Directory: %s", GetWorkingDirectory());
