@@ -1091,6 +1091,7 @@ void DrawGrid(int slices, float spacing)
         rlVertex3f(x2, 0.0f, z1);
         rlVertex3f(x2, 0.0f, z2);
         rlVertex3f(x1, 0.0f, z2);
+    rlEnd();
     }
 #else
     rlBegin(RL_LINES);
