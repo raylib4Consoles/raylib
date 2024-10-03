@@ -177,15 +177,11 @@ void DrawPixelV(Vector2 position, Color color)
 // Draw a line (using gl lines)
 void DrawLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color)
 {
-#if defined(PLATFORM_DREAMCAST)
-    DrawLineEx((Vector2){startPosX, startPosY},(Vector2){endPosX, endPosY}, 1, color);
-#else
     rlBegin(RL_LINES);
         rlColor4ub(color.r, color.g, color.b, color.a);
         rlVertex2f((float)startPosX, (float)startPosY);
         rlVertex2f((float)endPosX, (float)endPosY);
     rlEnd();
-#endif
 }
 
 // Draw a line defining thickness
@@ -507,15 +503,6 @@ void DrawCircleLines(int centerX, int centerY, float radius, Color color)
 // Draw circle outline (Vector version)
 void DrawCircleLinesV(Vector2 center, float radius, Color color)
 {
-#if defined(PLATFORM_DREAMCAST)
-    //no support for RL_LINES/GL_LINES on Dreamcast
-    for (int i = 0; i < 360; i += 10)
-    {
-        DrawLineEx((Vector2) {center.x + cosf(DEG2RAD*i)*radius, center.y + sinf(DEG2RAD*i)*radius},
-                    (Vector2) {center.x + cosf(DEG2RAD*(i + 10))*radius, center.y + sinf(DEG2RAD*(i + 10))*radius}, 
-                    1, color);
-    }
-#else
     rlBegin(RL_LINES);
         rlColor4ub(color.r, color.g, color.b, color.a);
 
@@ -526,7 +513,6 @@ void DrawCircleLinesV(Vector2 center, float radius, Color color)
             rlVertex2f(center.x + cosf(DEG2RAD*(i + 10))*radius, center.y + sinf(DEG2RAD*(i + 10))*radius);
         }
     rlEnd();
-#endif
 }
 
 // Draw ellipse
@@ -554,9 +540,6 @@ void DrawEllipseV(Vector2 center, float radiusH, float radiusV, Color color)
 // Draw ellipse outline
 void DrawEllipseLines(int centerX, int centerY, float radiusH, float radiusV, Color color)
 {
-#if defined(PLATFORM_DREAMCAST)
-    //no support for RL_LINES/GL_LINES on Dreamcast
-#else
     rlBegin(RL_LINES);
         for (int i = 0; i < 360; i += 10)
         {
@@ -565,7 +548,6 @@ void DrawEllipseLines(int centerX, int centerY, float radiusH, float radiusV, Co
             rlVertex2f(center.x + cosf(DEG2RAD*i)*radiusH, center.y + sinf(DEG2RAD*i)*radiusV);
         }
     rlEnd();
-#endif
 }
 
 
@@ -704,9 +686,7 @@ void DrawRingLines(Vector2 center, float innerRadius, float outerRadius, float s
     float stepLength = (endAngle - startAngle)/(float)segments;
     float angle = startAngle;
     bool showCapLines = true;
-#if defined(PLATFORM_DREAMCAST)
-    //no support for RL_LINES/GL_LINES on Dreamcast
-#else
+
     rlBegin(RL_LINES);
         if (showCapLines)
         {
@@ -735,7 +715,6 @@ void DrawRingLines(Vector2 center, float innerRadius, float outerRadius, float s
             rlVertex2f(center.x + cosf(DEG2RAD*angle)*innerRadius, center.y + sinf(DEG2RAD*angle)*innerRadius);
         }
     rlEnd();
-#endif
 }
 
 // Draw a color-filled rectangle
@@ -1419,9 +1398,6 @@ void DrawRectangleRoundedLinesEx(Rectangle rec, float roundness, int segments, f
     else
     {
         // Use LINES to draw the outline
-#if defined(PLATFORM_DREAMCAST)
-        //no support for RL_LINES/GL_LINES on Dreamcast
-#else
         rlBegin(RL_LINES);
 
             // Draw all the 4 corners first: Upper Left Corner, Upper Right Corner, Lower Right Corner, Lower Left Corner
@@ -1448,7 +1424,6 @@ void DrawRectangleRoundedLinesEx(Rectangle rec, float roundness, int segments, f
             }
 
         rlEnd();
-#endif
     }
 }
 
@@ -1491,12 +1466,6 @@ void DrawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color)
 // NOTE: Vertex must be provided in counter-clockwise order
 void DrawTriangleLines(Vector2 v1, Vector2 v2, Vector2 v3, Color color)
 {
-#if defined(PLATFORM_DREAMCAST)
-        //no support for RL_LINES/GL_LINES on Dreamcast
-        DrawLineEx(v1,v2, 1, color);
-        DrawLineEx(v2,v3, 1, color);
-        DrawLineEx(v3,v1, 1, color);
-#else
     rlBegin(RL_LINES);
         rlColor4ub(color.r, color.g, color.b, color.a);
         rlVertex2f(v1.x, v1.y);
@@ -1508,7 +1477,6 @@ void DrawTriangleLines(Vector2 v1, Vector2 v2, Vector2 v3, Color color)
         rlVertex2f(v3.x, v3.y);
         rlVertex2f(v1.x, v1.y);
     rlEnd();
-#endif
 }
 
 // Draw a triangle fan defined by points
@@ -1644,10 +1612,7 @@ void DrawPolyLines(Vector2 center, int sides, float radius, float rotation, Colo
     if (sides < 3) sides = 3;
     float centralAngle = rotation*DEG2RAD;
     float angleStep = 360.0f/(float)sides*DEG2RAD;
-#if defined(PLATFORM_DREAMCAST)
-    //no support for RL_LINES/GL_LINES on Dreamcast
-    DrawPolyLinesEx(center, sides, radius, rotation, 1, color);
-#else
+
     rlBegin(RL_LINES);
         for (int i = 0; i < sides; i++)
         {
@@ -1659,7 +1624,6 @@ void DrawPolyLines(Vector2 center, int sides, float radius, float rotation, Colo
             centralAngle += angleStep;
         }
     rlEnd();
-#endif
 }
 
 void DrawPolyLinesEx(Vector2 center, int sides, float radius, float rotation, float lineThick, Color color)
