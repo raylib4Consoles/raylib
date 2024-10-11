@@ -418,7 +418,7 @@ void PollInputEvents(void)
     // NOTE: We do it here in case of disconnection
     for (int i = 0; i < MAX_GAMEPADS; i++)
     {
-        cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
+        cont = maple_enum_type(i, MAPLE_FUNC_CONTROLLER);
         if(cont) {
             CORE.Input.Gamepad.ready[i] = true;
             numGamepads ++;
