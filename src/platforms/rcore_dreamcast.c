@@ -386,6 +386,46 @@ void SetMouseCursor(int cursor)
     TRACELOG(LOG_WARNING, "SetMouseCursor() not implemented on target platform");
 }
 
+// Button mapping table
+static const struct {
+    uint16_t dcbutton;
+    int raylibButton;
+} buttonMap[] = {
+    { CONT_START, GAMEPAD_BUTTON_MIDDLE_RIGHT },
+    { CONT_A, GAMEPAD_BUTTON_RIGHT_FACE_DOWN },
+    { CONT_B, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT },
+    { CONT_X, GAMEPAD_BUTTON_RIGHT_FACE_LEFT },
+    { CONT_Y, GAMEPAD_BUTTON_RIGHT_FACE_UP },
+    { CONT_Z, GAMEPAD_BUTTON_LEFT_TRIGGER_1 },
+    { CONT_D, GAMEPAD_BUTTON_RIGHT_TRIGGER_1 },
+    { CONT_DPAD_UP, GAMEPAD_BUTTON_LEFT_FACE_UP },
+    { CONT_DPAD_DOWN, GAMEPAD_BUTTON_LEFT_FACE_DOWN },
+    { CONT_DPAD_LEFT, GAMEPAD_BUTTON_LEFT_FACE_LEFT },
+    { CONT_DPAD_RIGHT, GAMEPAD_BUTTON_LEFT_FACE_RIGHT },
+};
+
+static void MapControls(int padIndex, cont_state_t *dcPadState) {
+    // Iterate over the button map and update button states
+    for (int j = 0; j < sizeof(buttonMap) / sizeof(buttonMap[0]); j++) {
+        if (dcPadState->buttons & buttonMap[j].dcbutton) {
+            CORE.Input.Gamepad.currentButtonState[padIndex][buttonMap[j].raylibButton] = 1;
+            CORE.Input.Gamepad.lastButtonPressed = buttonMap[j].raylibButton;
+        } else {
+            CORE.Input.Gamepad.currentButtonState[padIndex][buttonMap[j].raylibButton] = 0;
+        }
+    }
+
+    // Handle axis data
+    CORE.Input.Gamepad.axisState[padIndex][GAMEPAD_AXIS_LEFT_X] = (float)dcPadState->joyx / 128;
+    CORE.Input.Gamepad.axisState[padIndex][GAMEPAD_AXIS_LEFT_Y] = (float)dcPadState->joyy / 128;
+    CORE.Input.Gamepad.axisState[padIndex][GAMEPAD_AXIS_RIGHT_X] = (float)dcPadState->joy2x / 128;
+    CORE.Input.Gamepad.axisState[padIndex][GAMEPAD_AXIS_RIGHT_Y] = (float)dcPadState->joy2y / 128;
+    CORE.Input.Gamepad.axisState[padIndex][GAMEPAD_AXIS_LEFT_TRIGGER] = (float)dcPadState->ltrig / 255;
+    CORE.Input.Gamepad.axisState[padIndex][GAMEPAD_AXIS_RIGHT_TRIGGER] = (float)dcPadState->rtrig / 255;
+
+    CORE.Input.Gamepad.axisCount[padIndex] = 6;
+}
+
 // Register all input events
 void PollInputEvents(void)
 {
@@ -409,168 +449,27 @@ void PollInputEvents(void)
     // Register previous touch states
     for (int i = 0; i < MAX_TOUCH_POINTS; i++) CORE.Input.Touch.previousTouchState[i] = CORE.Input.Touch.currentTouchState[i];
 
-    // Get number of gamepads connected
-    int numGamepads = 0;
     maple_device_t *cont;
-    cont_state_t *pad_state;
+    cont_state_t *dcPadState;
     
-    // Check if gamepads are ready
-    // NOTE: We do it here in case of disconnection
-    for (int i = 0; i < MAX_GAMEPADS; i++)
+    for (int padIndex = 0; padIndex < MAX_GAMEPADS; padIndex++)
     {
-        cont = maple_enum_type(i, MAPLE_FUNC_CONTROLLER);
-        if(cont) {
-            CORE.Input.Gamepad.ready[i] = true;
-            numGamepads ++;
-        } else {
-            CORE.Input.Gamepad.ready[i] = false;
-        }
-    }
+        cont = maple_enum_type(padIndex, MAPLE_FUNC_CONTROLLER);
+        CORE.Input.Gamepad.ready[padIndex] = (cont) ? true : false;
 
-    for (int i = 0; (i < numGamepads) && (i < MAX_GAMEPADS); i++)
-    {
+        // Controller is not plugged into Port padIndex
+        if (!CORE.Input.Gamepad.ready[padIndex])
+            continue;
+
         // Register previous gamepad button states
         for (int k = 0; k < MAX_GAMEPAD_BUTTONS; k++) 
-            CORE.Input.Gamepad.previousButtonState[i][k] = CORE.Input.Gamepad.currentButtonState[i][k];
+            CORE.Input.Gamepad.previousButtonState[padIndex][k] = CORE.Input.Gamepad.currentButtonState[padIndex][k];
 
-        cont = maple_enum_type(i, MAPLE_FUNC_CONTROLLER);
+        dcPadState = (cont_state_t *)maple_dev_status(cont);
+        if (!dcPadState)
+            continue;
 
-        pad_state = (cont_state_t *)maple_dev_status(cont);
-
-        if (pad_state)
-        {
-            for (int k = 0; k < 16; k++) {  // Dreamcast has 16 face buttons according to
-                                            // maple/controller.h
-                int button = -1; 
-                int dcbutton = -1;
-                
-                switch(k) {
-                    case 0: 
-                    //  #define CONT_C              (1<<0)      /**< \brief C button Mask. */
-                        dcbutton = CONT_C;
-                        button = GAMEPAD_BUTTON_UNKNOWN;
-                        break;
-                    case 1:
-                    //  #define CONT_B              (1<<1)      /**< \brief B button Mask. */
-                        dcbutton = CONT_B;
-                        button = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT;
-                        break;
-                    case 2:
-                    //  #define CONT_A              (1<<2)      /**< \brief A button Mask. */
-                        dcbutton = CONT_A;
-                        button = GAMEPAD_BUTTON_RIGHT_FACE_DOWN;
-                        break;
-                    case 3:
-                    //  #define CONT_START          (1<<3)      /**< \brief Start button Mask. */
-                        dcbutton = CONT_START;
-                        button = GAMEPAD_BUTTON_MIDDLE_RIGHT;
-                        break;
-                    case 4:
-                    //  #define CONT_DPAD_UP        (1<<4)      /**< \brief Main Dpad Up button Mask. */
-                        dcbutton = CONT_DPAD_UP;
-                        button = GAMEPAD_BUTTON_LEFT_FACE_UP;
-                        break;
-                    case 5:
-                    //  #define CONT_DPAD_DOWN      (1<<5)      /**< \brief Main Dpad Down button Mask. */
-                        dcbutton = CONT_DPAD_DOWN;
-                        button = GAMEPAD_BUTTON_LEFT_FACE_DOWN;
-                        break;
-                    case 6:
-                    //  #define CONT_DPAD_LEFT      (1<<6)      /**< \brief Main Dpad Left button Mask. */
-                        dcbutton = CONT_DPAD_LEFT;
-                        button = GAMEPAD_BUTTON_LEFT_FACE_LEFT;
-                        break;
-                    case 7:
-                    //  #define CONT_DPAD_RIGHT     (1<<7)      /**< \brief Main Dpad right button Mask. */
-                        dcbutton = CONT_DPAD_RIGHT;
-                        button = GAMEPAD_BUTTON_LEFT_FACE_RIGHT;
-                        break;
-                    case 8:
-                    //  #define CONT_Z              (1<<8)      /**< \brief Z button Mask. */
-                        dcbutton = CONT_Z;
-                        button = GAMEPAD_BUTTON_LEFT_TRIGGER_1;
-                        break;
-                    case 9:
-                    //  #define CONT_Y              (1<<9)      /**< \brief Y button Mask. */
-                        dcbutton = CONT_Y;
-                        button = GAMEPAD_BUTTON_RIGHT_FACE_UP;
-                        break;
-                    case 10:
-                    //  #define CONT_X              (1<<10)     /**< \brief X button Mask. */
-                        dcbutton = CONT_X;
-                        button = GAMEPAD_BUTTON_RIGHT_FACE_LEFT;
-                        break;
-                    case 11:
-                    //  #define CONT_D              (1<<11)     /**< \brief D button Mask. */
-                        dcbutton = CONT_D;
-                        button = GAMEPAD_BUTTON_RIGHT_TRIGGER_1;
-                        break;
-                    case 12:
-                    //  #define CONT_DPAD2_UP       (1<<12)     /**< \brief Secondary Dpad Up button Mask. */
-                        dcbutton = CONT_DPAD2_UP;
-                        button = GAMEPAD_BUTTON_UNKNOWN;
-                        break;
-                    case 13:
-                    //  #define CONT_DPAD2_DOWN     (1<<13)     /**< \brief Secondary Dpad Down button Mask. */
-                        dcbutton = CONT_DPAD2_UP;
-                        button = GAMEPAD_BUTTON_UNKNOWN;
-                        break;
-                    case 14:
-                    //  #define CONT_DPAD2_LEFT     (1<<14)     /**< \brief Secondary Dpad Left button Mask. */
-                        dcbutton = CONT_DPAD2_UP;
-                        button = GAMEPAD_BUTTON_UNKNOWN;
-                        break;
-                    case 15:
-                    //  #define CONT_DPAD2_RIGHT    (1<<15)     /**< \brief Secondary Dpad Right button Mask. */
-                        dcbutton = CONT_DPAD2_UP;
-                        button = GAMEPAD_BUTTON_UNKNOWN;
-                        break;
-                    default:
-                        dcbutton = -1;
-                        button = GAMEPAD_BUTTON_UNKNOWN; 
-                        break;
-                }
-
-                if (button != -1)   // Check for valid button
-                {
-                    if (pad_state->buttons & dcbutton)
-                    {
-                        CORE.Input.Gamepad.currentButtonState[i][button] = 1;
-                        CORE.Input.Gamepad.lastButtonPressed = button;
-                    }
-                    else CORE.Input.Gamepad.currentButtonState[i][button] = 0;
-                }
-
-                //TRACELOGD("INPUT: Gamepad %d, button %d: Digital: %d, Analog: %g", gamepadState.index, j, gamepadState.digitalButton[j], gamepadState.analogButton[j]);
-
-                // Register axis data for every connected gamepad
-                CORE.Input.Gamepad.axisState[i][GAMEPAD_AXIS_LEFT_X] = (1.0f * pad_state->joyx / 128);
-                CORE.Input.Gamepad.axisState[i][GAMEPAD_AXIS_LEFT_Y] = (1.0f * pad_state->joyy / 128);
-                CORE.Input.Gamepad.axisState[i][GAMEPAD_AXIS_LEFT_TRIGGER] = (1.0f * pad_state->ltrig)/255 ;
-                CORE.Input.Gamepad.axisState[i][GAMEPAD_AXIS_RIGHT_TRIGGER] = (1.0f * pad_state->rtrig)/255;
-                CORE.Input.Gamepad.axisState[i][GAMEPAD_AXIS_RIGHT_X] = pad_state->joy2x;
-                CORE.Input.Gamepad.axisState[i][GAMEPAD_AXIS_RIGHT_Y] = pad_state->joy2y;
-                
-                CORE.Input.Gamepad.axisCount[i] = 6;
-            }
-
-        // TODO: Add callbacks for connect / disconnected pads
-
-        // Reset touch positions
-        // TODO: It resets on target platform the mouse position and not filled again until a move-event,
-        // so, if mouse is not moved it returns a (0, 0) position... this behaviour should be reviewed!
-        //for (int i = 0; i < MAX_TOUCH_POINTS; i++) CORE.Input.Touch.position[i] = (Vector2){ 0, 0 };
-
-        // Register previous keys states
-        // NOTE: Android supports up to 260 keys
-        //for (int i = 0; i < 260; i++)
-        //{
-        //    CORE.Input.Keyboard.previousKeyState[i] = CORE.Input.Keyboard.currentKeyState[i];
-        //    CORE.Input.Keyboard.keyRepeatInFrame[i] = 0;
-        //}
-
-        // TODO: Poll input events for current plaform
-        }
+        MapControls(padIndex, dcPadState);
     }
 }
 
