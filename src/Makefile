@@ -935,6 +935,7 @@ RAYLIB_INSTALL_PATH ?= $(DESTDIR)$(PREFIX)/lib
 # RAYLIB_H_INSTALL_PATH locates the installed raylib header and associated source files.
 RAYLIB_H_INSTALL_PATH ?= $(DESTDIR)$(PREFIX)/include
 
+OS := $(shell uname -s)
 
 install :
 	mkdir -p $(RAYLIB_INSTALL_PATH)
