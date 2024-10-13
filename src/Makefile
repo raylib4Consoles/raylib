@@ -965,6 +965,10 @@ ifeq ($(PLATFORM),PLATFORM_PSP)
 PREFIX ?= $(PSPDEV)/psp
 endif
 
+ifeq ($(PLATFORM),PLATFORM_PSP)
+PREFIX ?= $(PSPDEV)/psp
+endif
+
 ifeq ($(PLATFORM),PLATFORM_VITA)
 PREFIX ?= $(VITASDK)/arm-vita-eabi
 endif
