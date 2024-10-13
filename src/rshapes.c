@@ -1445,7 +1445,7 @@ void DrawPoly(Vector2 center, int sides, float radius, float rotation, Color col
     float centralAngle = rotation*DEG2RAD;
     float angleStep = 360.0f/(float)sides*DEG2RAD;
 
-#if defined(SUPPORT_QUADS_DRAW_MODE)
+#if defined(SUPPORT_QUADS_DRAW_MODE) && !defined(PLATFORM_PSP)
     rlSetTexture(GetShapesTexture().id);
     Rectangle shapeRect = GetShapesTextureRectangle();
 
@@ -1532,7 +1532,7 @@ void DrawPolyLinesEx(Vector2 center, int sides, float radius, float rotation, fl
     float exteriorAngle = 360.0f/(float)sides*DEG2RAD;
     float innerRadius = radius - (lineThick*cosf(DEG2RAD*exteriorAngle/2.0f));
 
-#if defined(SUPPORT_QUADS_DRAW_MODE)
+#if defined(SUPPORT_QUADS_DRAW_MODE) && !defined(PLATFORM_PSP)
     rlSetTexture(GetShapesTexture().id);
     Rectangle shapeRect = GetShapesTextureRectangle();
 

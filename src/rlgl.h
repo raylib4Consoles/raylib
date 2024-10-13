@@ -2324,7 +2324,9 @@ void rlglInit(int width, int height)
 
 #if defined(GRAPHICS_API_OPENGL_11)
     // Init state: Color hints (deprecated in OpenGL 3.0+)
+#if !defined(PLATFORM_PSP)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);      // Improve quality of color and texture coordinate interpolation
+#endif
     glShadeModel(GL_SMOOTH);                                // Smooth shading between vertex (vertex colors interpolation)
 #endif
 
@@ -3645,7 +3647,7 @@ void *rlReadTexturePixels(unsigned int id, int width, int height, int format)
     if ((glInternalFormat != 0) && (format < RL_PIXELFORMAT_COMPRESSED_DXT1_RGB))
     {
         pixels = RL_MALLOC(size);
-        #if defined(PLATFORM_NINTENDO64)
+        #if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PSP)
         #else
         glGetTexImage(GL_TEXTURE_2D, 0, glFormat, glType, pixels);
         #endif

@@ -31,6 +31,8 @@
 #         - Sega Dreamcast (SH4)
 #     > PLATFORM_NINTENDO64:
 #         - Nintendo 64 (MIPS4300)
+#     > PLATFORM_PSP:
+#         - PlayStation PSP
 #     > PLATFORM_VITA:
 #         - PlayStation Vita
 #     > PLATFORM_ORBIS:
@@ -67,7 +69,7 @@
 
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
-# Define target platform: PLATFORM_DESKTOP, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB, PLATFORM_DREAMCAST, PLATFORM_NINTENDO64 ,PLATFORM_VITA, PLATFORM_ORBIS, PLATFORM_PROSPERO
+# Define target platform: PLATFORM_DESKTOP, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB, PLATFORM_DREAMCAST, PLATFORM_NINTENDO64 ,PLATFORM_PSP, PLATFORM_VITA, PLATFORM_ORBIS, PLATFORM_PROSPERO
 PLATFORM             ?= PLATFORM_DREAMCAST
 
 ifeq ($(PLATFORM), PLATFORM_DESKTOP)
@@ -252,6 +254,11 @@ ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
 endif
 
 #PlayStation Platforms
+ifeq ($(PLATFORM),PLATFORM_PSP)
+    PLATFORM_OS = PSP
+    PLATFORM_SHELL = sh
+endif
+
 ifeq ($(PLATFORM),PLATFORM_VITA)
     PLATFORM_OS = VITA
     PLATFORM_SHELL = sh
@@ -309,6 +316,11 @@ endif
 
 ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
     # By default use OpenGL 1.1 on NINTENDO64
+    GRAPHICS = GRAPHICS_API_OPENGL_11
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PSP)
+    # By default use OpenGL 1.1 on PSP
     GRAPHICS = GRAPHICS_API_OPENGL_11
 endif
 
@@ -383,6 +395,11 @@ endif
 ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
     CC = $(KOS_CC)
     AR = $(KOS_AR)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PSP)
+    CC = psp-gcc
+    AR = psp-ar
 endif
 
 ifeq ($(PLATFORM),PLATFORM_VITA)
@@ -561,6 +578,11 @@ endif
 ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
     CFLAGS = $(KOS_CFLAGS) -Wno-error=incompatible-pointer-types -D$(PLATFORM) -D$(GRAPHICS) 
     INCLUDE_PATHS = $(KOS_INC_PATHS)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PSP)
+    CFLAGS = -Wl,-q -Wall -Wno-incompatible-pointer-types -Wno-pointer-sign -O3 -nostartfiles -D__PSP__ -D$(PLATFORM) -D$(GRAPHICS) 
+    INCLUDE_PATHS = -I. -Iinclude -I$(PSPDEV)/psp/include -I$(PSPDEV)/psp/sdk/include
 endif
 
 ifeq ($(PLATFORM),PLATFORM_VITA)
@@ -918,6 +940,10 @@ endif
 
 ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
 PREFIX ?= $(KOS_PORTS)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PSP)
+PREFIX ?= $(PSPDEV)/psp
 endif
 
 ifeq ($(PLATFORM),PLATFORM_VITA)
