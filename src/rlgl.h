@@ -754,6 +754,9 @@ RLAPI void rlDrawVertexArrayInstanced(int offset, int count, int instances); // 
 RLAPI void rlDrawVertexArrayElementsInstanced(int offset, int count, const void *buffer, int instances); // Draw vertex array elements with instancing
 
 // Textures management
+#if defined(PLATFORM_NINTENDO64)
+void rlLoadTextureN64(const void *data, int width, int height, int format, int mipmapCount)
+#endif
 RLAPI unsigned int rlLoadTexture(const void *data, int width, int height, int format, int mipmapCount); // Load texture data
 RLAPI unsigned int rlLoadTextureDepth(int width, int height, bool useRenderBuffer); // Load depth texture/renderbuffer (to be attached to fbo)
 RLAPI unsigned int rlLoadTextureCubemap(const void *data, int size, int format); // Load texture cubemap data

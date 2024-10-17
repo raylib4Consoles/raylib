@@ -510,7 +510,7 @@ void rlLoadTextureN64(const void *data, int width, int height, int format, int m
     if(platform.surface_index>=RAYLIB4N64_MAX_SURFACE_LIMIT)
     {
         TraceLog(LOG_ERROR,"Limit for surfaces in raylib4Nintendo64 is %d",RAYLIB4N64_MAX_SURFACE_LIMIT);
-        return 0;
+        return;
     }
     //todo load different mipmap level using mipmapCount by now we wil use only level 0
     //todo using different GL format to transform to supported internal format by now we will use only FMT_RGBA32 
