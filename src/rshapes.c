@@ -178,11 +178,47 @@ void DrawPixelV(Vector2 position, Color color)
 // Draw a line (using gl lines)
 void DrawLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color)
 {
-    rlBegin(RL_LINES);
+  #if defined(PLATFORM_DREAMCAST)
+    // Dreamcast-specific implementation: Draw a line as a thin rectangle using triangles
+    // Calculate direction vector
+    float dx = (float)(endPosX - startPosX);
+    float dy = (float)(endPosY - startPosY);
+
+    // Calculate length of the line
+    float length = sqrt(dx * dx + dy * dy); // Use sqrt instead of sqrtf
+
+    // Normalize direction vector and calculate perpendicular
+    dx /= length;
+    dy /= length;
+    float px = -dy; // Perpendicular vector for width
+    float py = dx;
+
+    // Set line width
+    float lineWidth = 1.0f; // Adjust width as needed
+    float halfWidth = lineWidth / 2.0f;
+
+    // Define rectangle vertices for the line
+    rlBegin(RL_TRIANGLES);
         rlColor4ub(color.r, color.g, color.b, color.a);
-        rlVertex2f((float)startPosX, (float)startPosY);
-        rlVertex2f((float)endPosX, (float)endPosY);
+
+        // First triangle
+        rlVertex2f(startPosX - px * halfWidth, startPosY - py * halfWidth);
+        rlVertex2f(startPosX + px * halfWidth, startPosY + py * halfWidth);
+        rlVertex2f(endPosX + px * halfWidth, endPosY + py * halfWidth);
+
+        // Second triangle
+        rlVertex2f(startPosX - px * halfWidth, startPosY - py * halfWidth);
+        rlVertex2f(endPosX + px * halfWidth, endPosY + py * halfWidth);
+        rlVertex2f(endPosX - px * halfWidth, endPosY - py * halfWidth);
     rlEnd();
+#else
+  // Default implementation for platforms that support GL_LINES
+  rlBegin(RL_LINES);
+      rlColor4ub(color.r, color.g, color.b, color.a);
+      rlVertex2f((float)startPosX, (float)startPosY);
+      rlVertex2f((float)endPosX, (float)endPosY);
+  rlEnd();
+#endif
 }
 
 // Draw a line (using gl lines)
