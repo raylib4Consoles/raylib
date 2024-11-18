@@ -31,7 +31,7 @@ Some people ported raylib to other languages in the form of bindings or wrappers
 | [raylib-go](https://github.com/gen2brain/raylib-go)                                      | **5.0**          | [Go](https://golang.org)                                             | Zlib                 |
 | [raylib-guile](https://github.com/petelliott/raylib-guile)                               | **auto**         | [Guile](https://www.gnu.org/software/guile)                          | Zlib                 |
 | [gforth-raylib](https://github.com/ArnautDaniel/gforth-raylib)                           | 3.5              | [Gforth](https://gforth.org)                                         | **???**              |
-| [h-raylib](https://github.com/Anut-py/h-raylib)                                          | **5.1-dev**      | [Haskell](https://haskell.org)                                       | Apache-2.0           |
+| [h-raylib](https://github.com/Anut-py/h-raylib)                                          | **5.5-dev**      | [Haskell](https://haskell.org)                                       | Apache-2.0           |
 | [raylib-hx](https://github.com/foreignsasquatch/raylib-hx)                               | 4.2              | [Haxe](https://haxe.org)                                             | Zlib                 |
 | [hb-raylib](https://github.com/MarcosLeonardoMendezGerencir/hb-raylib)                   | 3.5              | [Harbour](https://harbour.github.io)                                 | MIT                  |
 | [jaylib](https://github.com/janet-lang/jaylib)                                           | **5.0**          | [Janet](https://janet-lang.org)                                      | MIT                  |
@@ -51,7 +51,7 @@ Some people ported raylib to other languages in the form of bindings or wrappers
 | [raylib_odin_bindings](https://github.com/Deathbat2190/raylib_odin_bindings)             | 4.0-dev          | [Odin](https://odin-lang.org)                                        | MIT                  |
 | [raylib-ocaml](https://github.com/tjammer/raylib-ocaml)                                  | **5.0**          | [OCaml](https://ocaml.org)                                           | MIT                  |
 | [TurboRaylib](https://github.com/turborium/TurboRaylib)                                  | 4.5              | [Object Pascal](https://en.wikipedia.org/wiki/Object_Pascal)         | MIT                  |
-| [Ray4Laz](https://github.com/GuvaCode/Ray4Laz)                                           | **5.0**          | [Free Pascal](https://en.wikipedia.org/wiki/Free_Pascal)             | Zlib                 |
+| [Ray4Laz](https://github.com/GuvaCode/Ray4Laz)                                           | **5.5**          | [Free Pascal](https://en.wikipedia.org/wiki/Free_Pascal)             | Zlib                 |
 | [Raylib.4.0.Pascal](https://github.com/sysrpl/Raylib.4.0.Pascal)                         | 4.0              | [Free Pascal](https://en.wikipedia.org/wiki/Free_Pascal)             | Zlib                 |
 | [pyraylib](https://github.com/Ho011/pyraylib)                                            | 3.7              | [Python](https://www.python.org)                                     | Zlib                 |
 | [raylib-python-cffi](https://github.com/electronstudio/raylib-python-cffi)               | 4.2              | [Python](https://www.python.org)                                     | EPL-2.0              |
@@ -87,7 +87,7 @@ Some people ported raylib to other languages in the form of bindings or wrappers
 
 ### Utility Wrapers
 
-These are utility wrappers for specific languages, they are not required to use raylib in the language but may adapt the raylib API to be more inline with the language's pardigm.
+These are utility wrappers for specific languages, they are not required to use raylib in the language but may adapt the raylib API to be more inline with the language's paradigm.
 | Name                                                 | raylib Version | Language                                     | License |
 | ---------------------------------------------------- | :------------: | :------------------------------------------: | :-----: |
 | [raylib-cpp](https://github.com/robloach/raylib-cpp) | **5.0**        | [C++](https://en.wikipedia.org/wiki/C%2B%2B) | Zlib    |

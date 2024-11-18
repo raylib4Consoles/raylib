@@ -225,14 +225,6 @@
     #pragma GCC diagnostic pop
 #endif
 
-#if defined(SUPPORT_FILEFORMAT_SVG)
-    #define NANOSVG_IMPLEMENTATION          // Expands implementation
-    #include "external/nanosvg.h"
-
-    #define NANOSVGRAST_IMPLEMENTATION
-    #include "external/nanosvgrast.h"
-#endif
-
 //----------------------------------------------------------------------------------
 // Defines and Macros
 //----------------------------------------------------------------------------------
@@ -331,84 +323,6 @@ Image LoadImageRaw(const char *fileName, int width, int height, int format, int 
 
         UnloadFileData(fileData);
     }
-
-    return image;
-}
-
-// Load an image from a SVG file or string with custom size
-Image LoadImageSvg(const char *fileNameOrString, int width, int height)
-{
-    Image image = { 0 };
-
-#if defined(SUPPORT_FILEFORMAT_SVG)
-    bool isSvgStringValid = false;
-
-    // Validate fileName or string
-    if (fileNameOrString != NULL)
-    {
-        int dataSize = 0;
-        unsigned char *fileData = NULL;
-
-        if (FileExists(fileNameOrString))
-        {
-            fileData = LoadFileData(fileNameOrString, &dataSize);
-            isSvgStringValid = true;
-        }
-        else
-        {
-            // Validate fileData as valid SVG string data
-            //<svg xmlns="http://www.w3.org/2000/svg" width="2500" height="2484" viewBox="0 0 192.756 191.488">
-            if ((fileNameOrString != NULL) &&
-                (fileNameOrString[0] == '<') &&
-                (fileNameOrString[1] == 's') &&
-                (fileNameOrString[2] == 'v') &&
-                (fileNameOrString[3] == 'g'))
-            {
-                fileData = (unsigned char *)fileNameOrString;
-                isSvgStringValid = true;
-            }
-        }
-
-        if (isSvgStringValid)
-        {
-            struct NSVGimage *svgImage = nsvgParse((char *)fileData, "px", 96.0f);
-
-            unsigned char *img = RL_MALLOC(width*height*4);
-
-            // Calculate scales for both the width and the height
-            const float scaleWidth = width/svgImage->width;
-            const float scaleHeight = height/svgImage->height;
-
-            // Set the largest of the 2 scales to be the scale to use
-            const float scale = (scaleHeight > scaleWidth)? scaleWidth : scaleHeight;
-
-            int offsetX = 0;
-            int offsetY = 0;
-
-            if (scaleHeight > scaleWidth) offsetY = (height - svgImage->height*scale)/2;
-            else offsetX = (width - svgImage->width*scale)/2;
-
-            // Rasterize
-            struct NSVGrasterizer *rast = nsvgCreateRasterizer();
-            nsvgRasterize(rast, svgImage, (int)offsetX, (int)offsetY, scale, img, width, height, width*4);
-
-            // Populate image struct with all data
-            image.data = img;
-            image.width = width;
-            image.height = height;
-            image.mipmaps = 1;
-            image.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
-
-            // Free used memory
-            nsvgDelete(svgImage);
-            nsvgDeleteRasterizer(rast);
-        }
-
-        if (isSvgStringValid && (fileData != (unsigned char *)fileNameOrString)) UnloadFileData(fileData);
-    }
-#else
-    TRACELOG(LOG_WARNING, "SVG image support not enabled, image can not be loaded");
-#endif
 
     return image;
 }
@@ -592,41 +506,11 @@ Image LoadImageFromMemory(const char *fileType, const unsigned char *fileData, i
         if (fileData != NULL)
         {
             qoi_desc desc = { 0 };
-            image.data = qoi_decode(fileData, dataSize, &desc, 4);
+            image.data = qoi_decode(fileData, dataSize, &desc, (int) fileData[12]);
             image.width = desc.width;
             image.height = desc.height;
-            image.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+            image.format = desc.channels == 4 ? PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 : PIXELFORMAT_UNCOMPRESSED_R8G8B8;
             image.mipmaps = 1;
-        }
-    }
-#endif
-#if defined(SUPPORT_FILEFORMAT_SVG)
-    else if ((strcmp(fileType, ".svg") == 0) || (strcmp(fileType, ".SVG") == 0))
-    {
-        // Validate fileData as valid SVG string data
-        //<svg xmlns="http://www.w3.org/2000/svg" width="2500" height="2484" viewBox="0 0 192.756 191.488">
-        if ((fileData != NULL) &&
-            (fileData[0] == '<') &&
-            (fileData[1] == 's') &&
-            (fileData[2] == 'v') &&
-            (fileData[3] == 'g'))
-        {
-            struct NSVGimage *svgImage = nsvgParse((char *)fileData, "px", 96.0f);
-            unsigned char *img = RL_MALLOC(svgImage->width*svgImage->height*4);
-
-            // Rasterize
-            struct NSVGrasterizer *rast = nsvgCreateRasterizer();
-            nsvgRasterize(rast, svgImage, 0, 0, 1.0f, img, svgImage->width, svgImage->height, svgImage->width*4);
-
-            // Populate image struct with all data
-            image.data = img;
-            image.width = svgImage->width;
-            image.height = svgImage->height;
-            image.mipmaps = 1;
-            image.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
-
-            nsvgDelete(svgImage);
-            nsvgDeleteRasterizer(rast);
         }
     }
 #endif
@@ -716,15 +600,15 @@ Image LoadImageFromScreen(void)
 }
 
 // Check if an image is ready
-bool IsImageReady(Image image)
+bool IsImageValid(Image image)
 {
     bool result = false;
 
     if ((image.data != NULL) &&     // Validate pixel data available
-        (image.width > 0) &&
-        (image.height > 0) &&       // Validate image size
+        (image.width > 0) &&        // Validate image width
+        (image.height > 0) &&       // Validate image height
         (image.format > 0) &&       // Validate image format
-        (image.mipmaps > 0)) result = true;       // Validate image mipmaps (at least 1 for basic mipmap level)
+        (image.mipmaps > 0)) result = true; // Validate image mipmaps (at least 1 for basic mipmap level)
 
     return result;
 }
@@ -943,16 +827,27 @@ Image GenImageGradientLinear(int width, int height, int direction, Color start, 
     float cosDir = cosf(radianDirection);
     float sinDir = sinf(radianDirection);
 
+    // Calculate how far the top-left pixel is along the gradient direction from the center of said gradient
+    float startingPos = 0.5f - (cosDir*width/2) - (sinDir*height/2);
+    // With directions that lie in the first or third quadrant (i.e. from top-left to 
+    // bottom-right or vice-versa), pixel (0, 0) is the farthest point on the gradient
+    // (i.e. the pixel which should become one of the gradient's ends color); while for
+    // directions that lie in the second or fourth quadrant, that point is pixel (width, 0).
+    float maxPosValue = 
+            ((signbit(sinDir) != 0) == (signbit(cosDir) != 0))
+            ? fabsf(startingPos)
+            : fabsf(startingPos+width*cosDir);
     for (int i = 0; i < width; i++)
     {
         for (int j = 0; j < height; j++)
         {
             // Calculate the relative position of the pixel along the gradient direction
-            float pos = (i*cosDir + j*sinDir)/(width*cosDir + height*sinDir);
+            float pos = (startingPos + (i*cosDir + j*sinDir)) / maxPosValue;
 
             float factor = pos;
-            factor = (factor > 1.0f)? 1.0f : factor;  // Clamp to [0,1]
-            factor = (factor < 0.0f)? 0.0f : factor;  // Clamp to [0,1]
+            factor = (factor > 1.0f)? 1.0f : factor;  // Clamp to [-1,1]
+            factor = (factor < -1.0f)? -1.0f : factor;  // Clamp to [-1,1]
+            factor = factor / 2 + 0.5f;
 
             // Generate the color for this pixel
             pixels[j*width + i].r = (int)((float)end.r*factor + (float)start.r*(1.0f - factor));
@@ -1123,7 +1018,7 @@ Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float
             // Apply aspect ratio compensation to wider side
             if (width > height) nx *= aspectRatio;
             else ny /= aspectRatio;
-            
+
             // Basic perlin noise implementation (not used)
             //float p = (stb_perlin_noise3(nx, ny, 0.0f, 0, 0, 0);
 
@@ -1227,8 +1122,7 @@ Image GenImageText(int width, int height, const char *text)
 {
     Image image = { 0 };
 
-#if defined(SUPPORT_MODULE_RTEXT)
-    int textLength = TextLength(text);
+    int textLength = (int)strlen(text);
     int imageViewSize = width*height;
 
     image.width = width;
@@ -1238,10 +1132,6 @@ Image GenImageText(int width, int height, const char *text)
     image.mipmaps = 1;
 
     memcpy(image.data, text, (textLength > imageViewSize)? imageViewSize : textLength);
-#else
-    TRACELOG(LOG_WARNING, "IMAGE: GenImageText() requires module: rtext");
-    image = GenImageColor(width, height, BLACK);     // Generating placeholder black image rectangle
-#endif
 
     return image;
 }
@@ -2511,22 +2401,16 @@ void ImageMipmaps(Image *image)
         else TRACELOG(LOG_WARNING, "IMAGE: Mipmaps required memory could not be allocated");
 
         // Pointer to allocated memory point where store next mipmap level data
-        unsigned char *nextmip = (unsigned char *)image->data + GetPixelDataSize(image->width, image->height, image->format);
+        unsigned char *nextmip = image->data;
 
-        mipWidth = image->width/2;
-        mipHeight = image->height/2;
+        mipWidth = image->width;
+        mipHeight = image->height;
         mipSize = GetPixelDataSize(mipWidth, mipHeight, image->format);
         Image imCopy = ImageCopy(*image);
 
         for (int i = 1; i < mipCount; i++)
         {
-            TRACELOGD("IMAGE: Generating mipmap level: %i (%i x %i) - size: %i - offset: 0x%x", i, mipWidth, mipHeight, mipSize, nextmip);
-
-            ImageResize(&imCopy, mipWidth, mipHeight);  // Uses internally Mitchell cubic downscale filter
-
-            memcpy(nextmip, imCopy.data, mipSize);
             nextmip += mipSize;
-            image->mipmaps++;
 
             mipWidth /= 2;
             mipHeight /= 2;
@@ -2536,9 +2420,19 @@ void ImageMipmaps(Image *image)
             if (mipHeight < 1) mipHeight = 1;
 
             mipSize = GetPixelDataSize(mipWidth, mipHeight, image->format);
+
+            if (i < image->mipmaps) continue;
+
+            TRACELOGD("IMAGE: Generating mipmap level: %i (%i x %i) - size: %i - offset: 0x%x", i, mipWidth, mipHeight, mipSize, nextmip);
+
+            ImageResize(&imCopy, mipWidth, mipHeight); // Uses internally Mitchell cubic downscale filter
+
+            memcpy(nextmip, imCopy.data, mipSize);
         }
 
         UnloadImage(imCopy);
+
+        image->mipmaps = mipCount;
     }
     else TRACELOG(LOG_WARNING, "IMAGE: Mipmaps already available");
 }
@@ -4027,7 +3921,6 @@ void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec, Color 
     if ((dst->data == NULL) || (dst->width == 0) || (dst->height == 0) ||
         (src.data == NULL) || (src.width == 0) || (src.height == 0)) return;
 
-    if (dst->mipmaps > 1) TRACELOG(LOG_WARNING, "Image drawing only applied to base mipmap level");
     if (dst->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image drawing not supported for compressed formats");
     else
     {
@@ -4085,13 +3978,21 @@ void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec, Color 
         //    [-] GetPixelColor(): Get Vector4 instead of Color, easier for ColorAlphaBlend()
         //    [ ] Support f32bit channels drawing
 
-        // TODO: Support PIXELFORMAT_UNCOMPRESSED_R32, PIXELFORMAT_UNCOMPRESSED_R32G32B32, PIXELFORMAT_UNCOMPRESSED_R32G32B32A32 and 16-bit equivalents
+        // TODO: Support PIXELFORMAT_UNCOMPRESSED_R32G32B32A32 and PIXELFORMAT_UNCOMPRESSED_R1616B16A16
 
         Color colSrc, colDst, blend;
         bool blendRequired = true;
 
         // Fast path: Avoid blend if source has no alpha to blend
-        if ((tint.a == 255) && ((srcPtr->format == PIXELFORMAT_UNCOMPRESSED_GRAYSCALE) || (srcPtr->format == PIXELFORMAT_UNCOMPRESSED_R8G8B8) || (srcPtr->format == PIXELFORMAT_UNCOMPRESSED_R5G6B5))) blendRequired = false;
+        if ((tint.a == 255) &&
+            ((srcPtr->format == PIXELFORMAT_UNCOMPRESSED_GRAYSCALE) ||
+            (srcPtr->format == PIXELFORMAT_UNCOMPRESSED_R5G6B5) ||
+            (srcPtr->format == PIXELFORMAT_UNCOMPRESSED_R8G8B8) ||
+            (srcPtr->format == PIXELFORMAT_UNCOMPRESSED_R32) ||
+            (srcPtr->format == PIXELFORMAT_UNCOMPRESSED_R32G32B32) ||
+            (srcPtr->format == PIXELFORMAT_UNCOMPRESSED_R16) ||
+            (srcPtr->format == PIXELFORMAT_UNCOMPRESSED_R16G16B16)))
+            blendRequired = false;
 
         int strideDst = GetPixelDataSize(dst->width, 1, dst->format);
         int bytesPerPixelDst = strideDst/(dst->width);
@@ -4132,6 +4033,35 @@ void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec, Color 
         }
 
         if (useSrcMod) UnloadImage(srcMod);     // Unload source modified image
+
+        if ((dst->mipmaps > 1) && (src.mipmaps > 1))
+        {
+            Image mipmapDst = *dst;
+            mipmapDst.data = (char *)mipmapDst.data + GetPixelDataSize(mipmapDst.width, mipmapDst.height, mipmapDst.format);
+            mipmapDst.width /= 2;
+            mipmapDst.height /= 2;
+            mipmapDst.mipmaps--;
+
+            Image mipmapSrc = src;
+            mipmapSrc.data = (char *)mipmapSrc.data + GetPixelDataSize(mipmapSrc.width, mipmapSrc.height, mipmapSrc.format);
+            mipmapSrc.width /= 2;
+            mipmapSrc.height /= 2;
+            mipmapSrc.mipmaps--;
+
+            Rectangle mipmapSrcRec = srcRec;
+            mipmapSrcRec.width /= 2;
+            mipmapSrcRec.height /= 2;
+            mipmapSrcRec.x /= 2;
+            mipmapSrcRec.y /= 2;
+
+            Rectangle mipmapDstRec = dstRec;
+            mipmapDstRec.width /= 2;
+            mipmapDstRec.height /= 2;
+            mipmapDstRec.x /= 2;
+            mipmapDstRec.y /= 2;
+
+            ImageDraw(&mipmapDst, mipmapSrc, mipmapSrcRec, mipmapDstRec, tint);
+        }
     }
 }
 
@@ -4213,7 +4143,6 @@ TextureCubemap LoadTextureCubemap(Image image, int layout)
         {
             if ((image.width/6) == image.height) { layout = CUBEMAP_LAYOUT_LINE_HORIZONTAL; cubemap.width = image.width/6; }
             else if ((image.width/4) == (image.height/3)) { layout = CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE; cubemap.width = image.width/4; }
-            else if (image.width >= (int)((float)image.height*1.85f)) { layout = CUBEMAP_LAYOUT_PANORAMA; cubemap.width = image.width/4; }
         }
         else if (image.height > image.width)
         {
@@ -4227,7 +4156,6 @@ TextureCubemap LoadTextureCubemap(Image image, int layout)
         if (layout == CUBEMAP_LAYOUT_LINE_HORIZONTAL) cubemap.width = image.width/6;
         if (layout == CUBEMAP_LAYOUT_CROSS_THREE_BY_FOUR) cubemap.width = image.width/3;
         if (layout == CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE) cubemap.width = image.width/4;
-        if (layout == CUBEMAP_LAYOUT_PANORAMA) cubemap.width = image.width/4;
     }
 
     cubemap.height = cubemap.width;
@@ -4246,11 +4174,11 @@ TextureCubemap LoadTextureCubemap(Image image, int layout)
         {
             faces = ImageCopy(image);       // Image data already follows expected convention
         }
-        else if (layout == CUBEMAP_LAYOUT_PANORAMA)
+        /*else if (layout == CUBEMAP_LAYOUT_PANORAMA)
         {
-            // TODO: Convert panorama image to square faces...
+            // TODO: implement panorama by converting image to square faces...
             // Ref: https://github.com/denivip/panorama/blob/master/panorama.cpp
-        }
+        } */
         else
         {
             if (layout == CUBEMAP_LAYOUT_LINE_HORIZONTAL) for (int i = 0; i < 6; i++) faceRecs[i].x = (float)size*i;
@@ -4277,14 +4205,20 @@ TextureCubemap LoadTextureCubemap(Image image, int layout)
             faces = GenImageColor(size, size*6, MAGENTA);
             ImageFormat(&faces, image.format);
 
+            Image mipmapped = ImageCopy(image);
+            ImageMipmaps(&mipmapped);
+            ImageMipmaps(&faces);
+
             // NOTE: Image formatting does not work with compressed textures
 
-            for (int i = 0; i < 6; i++) ImageDraw(&faces, image, faceRecs[i], (Rectangle){ 0, (float)size*i, (float)size, (float)size }, WHITE);
+            for (int i = 0; i < 6; i++) ImageDraw(&faces, mipmapped, faceRecs[i], (Rectangle){ 0, (float)size*i, (float)size, (float)size }, WHITE);
+
+            UnloadImage(mipmapped);
         }
 
         // NOTE: Cubemap data is expected to be provided as 6 images in a single data array,
         // one after the other (that's a vertical image), following convention: +X, -X, +Y, -Y, +Z, -Z
-        cubemap.id = rlLoadTextureCubemap(faces.data, size, faces.format);
+        cubemap.id = rlLoadTextureCubemap(faces.data, size, faces.format, faces.mipmaps);
 
         if (cubemap.id != 0)
         {
@@ -4340,16 +4274,16 @@ RenderTexture2D LoadRenderTexture(int width, int height)
     return target;
 }
 
-// Check if a texture is ready
-bool IsTextureReady(Texture2D texture)
+// Check if a texture is valid (loaded in GPU)
+bool IsTextureValid(Texture2D texture)
 {
     bool result = false;
 
-    // TODO: Validate maximum texture size supported by GPU?
+    // TODO: Validate maximum texture size supported by GPU
 
-    if ((texture.id > 0) &&         // Validate OpenGL id
-        (texture.width > 0) &&
-        (texture.height > 0) &&     // Validate texture size
+    if ((texture.id > 0) &&         // Validate OpenGL id (texture uplaoded to GPU)
+        (texture.width > 0) &&      // Validate texture width
+        (texture.height > 0) &&     // Validate texture height
         (texture.format > 0) &&     // Validate texture pixel format
         (texture.mipmaps > 0)) result = true;     // Validate texture mipmaps (at least 1 for basic mipmap level)
 
@@ -4367,14 +4301,14 @@ void UnloadTexture(Texture2D texture)
     }
 }
 
-// Check if a render texture is ready
-bool IsRenderTextureReady(RenderTexture2D target)
+// Check if a render texture is valid (loaded in GPU)
+bool IsRenderTextureValid(RenderTexture2D target)
 {
     bool result = false;
 
-    if ((target.id > 0) &&                  // Validate OpenGL id
-        IsTextureReady(target.depth) &&     // Validate FBO depth texture/renderbuffer
-        IsTextureReady(target.texture)) result = true;    // Validate FBO texture
+    if ((target.id > 0) &&                  // Validate OpenGL id (loaded on GPU)
+        IsTextureValid(target.depth) &&     // Validate FBO depth texture/renderbuffer attachment
+        IsTextureValid(target.texture)) result = true; // Validate FBO texture attachment
 
     return result;
 }
@@ -4565,7 +4499,7 @@ void DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2
 
         if (source.width < 0) { flipX = true; source.width *= -1; }
         if (source.height < 0) source.y -= source.height;
-        
+
         if (dest.width < 0) dest.width *= -1;
         if (dest.height < 0) dest.height *= -1;
 
@@ -4988,8 +4922,6 @@ Vector3 ColorToHSV(Color color)
     return hsv;
 }
 
-
-
 // Get a Color from HSV values
 // Implementation reference: https://en.wikipedia.org/wiki/HSL_and_HSV#Alternative_HSV_conversion
 // NOTE: Color->HSV->Color conversion will not yield exactly the same color due to rounding errors
@@ -5189,10 +5121,10 @@ Color ColorAlphaBlend(Color dst, Color src, Color tint)
 }
 
 // Get color lerp interpolation between two colors, factor [0.0f..1.0f]
-Color ColorLerp(Color color1, Color color2, float factor) 
-{ 
+Color ColorLerp(Color color1, Color color2, float factor)
+{
     Color color = { 0 };
-    
+
     if (factor < 0.0f) factor = 0.0f;
     else if (factor > 1.0f) factor = 1.0f;
 

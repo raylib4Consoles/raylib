@@ -1,6 +1,6 @@
 /**********************************************************************************************
 *
-*   rcore_desktop_rgfw template - Functions to manage window, graphics device and inputs
+*   rcore_desktop_rgfw - Functions to manage window, graphics device and inputs
 *
 *   PLATFORM: RGFW
 *       - Windows (Win32, Win64)
@@ -63,12 +63,16 @@ void CloseWindow(void);
 
 #define RGFW_IMPLEMENTATION
 
-#if defined(__WIN32) || defined(__WIN64)
+#if defined(_WIN32) || defined(_WIN64)
     #define WIN32_LEAN_AND_MEAN
-    #define Rectangle rectangle_win32
+	#define Rectangle rectangle_win32
     #define CloseWindow CloseWindow_win32
     #define ShowCursor __imp_ShowCursor
-    #define _APISETSTRING_
+	#define _APISETSTRING_
+	
+	#undef MAX_PATH
+
+	__declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int CodePage, unsigned long dwFlags, const char *lpMultiByteStr, int cbMultiByte, wchar_t *lpWideCharStr, int cchWideChar);
 #endif
 
 #if defined(__APPLE__)
@@ -76,15 +80,16 @@ void CloseWindow(void);
     #define Size NSSIZE
 #endif
 
-__declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int CodePage, unsigned long dwFlags, const char *lpMultiByteStr, int cbMultiByte, wchar_t *lpWideCharStr, int cchWideChar);
-
 #include "../external/RGFW.h"
 
-#if defined(__WIN32) || defined(__WIN64)
+#if defined(_WIN32) || defined(_WIN64)
     #undef DrawText
     #undef ShowCursor
     #undef CloseWindow
     #undef Rectangle
+
+	#undef MAX_PATH
+	#define MAX_PATH 1025
 #endif
 
 #if defined(__APPLE__)
@@ -289,7 +294,6 @@ void SetWindowState(unsigned int flags)
     }
     if (flags & FLAG_WINDOW_RESIZABLE)
     {
-        printf("%i %i\n", platform.window->r.w, platform.window->r.h);
         RGFW_window_setMaxSize(platform.window, RGFW_AREA(platform.window->r.w, platform.window->r.h));
         RGFW_window_setMinSize(platform.window, RGFW_AREA(platform.window->r.w, platform.window->r.h));
     }
@@ -516,6 +520,9 @@ void SetWindowMaxSize(int width, int height)
 // Set window dimensions
 void SetWindowSize(int width, int height)
 {
+    CORE.Window.screen.width = width;
+    CORE.Window.screen.height = height;
+
     RGFW_window_resize(platform.window, RGFW_AREA(width, height));
 }
 
@@ -657,6 +664,43 @@ const char *GetClipboardText(void)
     return RGFW_readClipboard(NULL);
 }
 
+
+#if defined(SUPPORT_CLIPBOARD_IMAGE)
+
+#ifdef _WIN32
+#   define WIN32_CLIPBOARD_IMPLEMENTATION
+#   define WINUSER_ALREADY_INCLUDED
+#   define WINBASE_ALREADY_INCLUDED
+#   define WINGDI_ALREADY_INCLUDED
+#   include "../external/win32_clipboard.h"
+#endif
+
+// Get clipboard image
+Image GetClipboardImage(void)
+{
+    Image image = {0};
+    unsigned long long int dataSize = 0;
+    void* fileData = NULL;
+
+#ifdef _WIN32
+    int width, height;
+    fileData  = (void*)Win32GetClipboardImageData(&width, &height, &dataSize);
+#else
+    TRACELOG(LOG_WARNING, "Clipboard image: PLATFORM_DESKTOP_RGFW doesn't implement `GetClipboardImage` for this OS");
+#endif
+
+    if (fileData == NULL)
+    {
+        TRACELOG(LOG_WARNING, "Clipboard image: Couldn't get clipboard data.");
+    }
+    else
+    {
+        image = LoadImageFromMemory(".bmp", fileData, dataSize);
+    }
+    return image;
+}
+#endif // SUPPORT_CLIPBOARD_IMAGE
+
 // Show mouse cursor
 void ShowCursor(void)
 {
@@ -688,7 +732,7 @@ void DisableCursor(void)
 {
     RGFW_disableCursor = true;
 
-    RGFW_window_mouseHold(platform.window, RGFW_AREA(CORE.Window.screen.width / 2, CORE.Window.screen.height / 2));
+    RGFW_window_mouseHold(platform.window, RGFW_AREA(0, 0));
 
     HideCursor();
 }
@@ -872,9 +916,8 @@ void PollInputEvents(void)
     //-----------------------------------------------------------------------------
     CORE.Window.resizedLastFrame = false;
 
-
-    #define RGFW_HOLD_MOUSE			(1L<<2)
-    #if defined(RGFW_X11) //|| defined(RGFW_MACOS)
+    CORE.Input.Mouse.previousPosition = CORE.Input.Mouse.currentPosition;
+    #define RGFW_HOLD_MOUSE     (1L<<2)
     if (platform.window->_winArgs & RGFW_HOLD_MOUSE)
     {
         CORE.Input.Mouse.previousPosition = (Vector2){ 0.0f, 0.0f };
@@ -884,11 +927,9 @@ void PollInputEvents(void)
     {
         CORE.Input.Mouse.previousPosition = CORE.Input.Mouse.currentPosition;
     }
-#endif
 
     while (RGFW_window_checkEvent(platform.window))
     {
-
         if ((platform.window->event.type >= RGFW_jsButtonPressed) && (platform.window->event.type <= RGFW_jsAxisMove))
         {
             if (!CORE.Input.Gamepad.ready[platform.window->event.joystick])
@@ -1030,15 +1071,8 @@ void PollInputEvents(void)
             {
                 if (platform.window->_winArgs & RGFW_HOLD_MOUSE)
                 {
-                    CORE.Input.Mouse.previousPosition = (Vector2){ 0.0f, 0.0f };
-
-                    if (event->point.x)
-                        CORE.Input.Mouse.previousPosition.x = CORE.Input.Mouse.currentPosition.x;
-                    if (event->point.y)
-                        CORE.Input.Mouse.previousPosition.y = CORE.Input.Mouse.currentPosition.y;
-
-                    CORE.Input.Mouse.currentPosition.x = (float)event->point.x;
-                    CORE.Input.Mouse.currentPosition.y = (float)event->point.y;
+                    CORE.Input.Mouse.currentPosition.x += (float)event->point.x;
+                    CORE.Input.Mouse.currentPosition.y += (float)event->point.y;
                 }
                 else
                 {
@@ -1205,7 +1239,6 @@ void PollInputEvents(void)
     //-----------------------------------------------------------------------------
 }
 
-
 //----------------------------------------------------------------------------------
 // Module Internal Functions Definition
 //----------------------------------------------------------------------------------
@@ -1261,7 +1294,6 @@ int InitPlatform(void)
         If so, rcore_destkop_sdl should be updated too
     */
     SetupFramebuffer(CORE.Window.display.width, CORE.Window.display.height);
-
 
     if (CORE.Window.flags & FLAG_VSYNC_HINT) RGFW_window_swapInterval(platform.window, 1);
 

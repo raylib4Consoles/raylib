@@ -27,7 +27,7 @@ return {
     {
       name = "RAYLIB_VERSION",
       type = "STRING",
-      value = "5.5-dev",
+      value = "5.5",
       description = ""
     },
     {
@@ -2839,11 +2839,6 @@ return {
           name = "CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE",
           value = 4,
           description = "Layout is defined by a 4x3 cross with cubemap faces"
-        },
-        {
-          name = "CUBEMAP_LAYOUT_PANORAMA",
-          value = 5,
-          description = "Layout is defined by a panorama image (equirrectangular map)"
         }
       }
     },
@@ -3134,22 +3129,22 @@ return {
     },
     {
       name = "IsWindowHidden",
-      description = "Check if window is currently hidden (only PLATFORM_DESKTOP)",
+      description = "Check if window is currently hidden",
       returnType = "bool"
     },
     {
       name = "IsWindowMinimized",
-      description = "Check if window is currently minimized (only PLATFORM_DESKTOP)",
+      description = "Check if window is currently minimized",
       returnType = "bool"
     },
     {
       name = "IsWindowMaximized",
-      description = "Check if window is currently maximized (only PLATFORM_DESKTOP)",
+      description = "Check if window is currently maximized",
       returnType = "bool"
     },
     {
       name = "IsWindowFocused",
-      description = "Check if window is currently focused (only PLATFORM_DESKTOP)",
+      description = "Check if window is currently focused",
       returnType = "bool"
     },
     {
@@ -3167,7 +3162,7 @@ return {
     },
     {
       name = "SetWindowState",
-      description = "Set window configuration state using flags (only PLATFORM_DESKTOP)",
+      description = "Set window configuration state using flags",
       returnType = "void",
       params = {
         {type = "unsigned int", name = "flags"}
@@ -3183,32 +3178,32 @@ return {
     },
     {
       name = "ToggleFullscreen",
-      description = "Toggle window state: fullscreen/windowed [resizes monitor to match window resolution] (only PLATFORM_DESKTOP)",
+      description = "Toggle window state: fullscreen/windowed, resizes monitor to match window resolution",
       returnType = "void"
     },
     {
       name = "ToggleBorderlessWindowed",
-      description = "Toggle window state: borderless windowed [resizes window to match monitor resolution] (only PLATFORM_DESKTOP)",
+      description = "Toggle window state: borderless windowed, resizes window to match monitor resolution",
       returnType = "void"
     },
     {
       name = "MaximizeWindow",
-      description = "Set window state: maximized, if resizable (only PLATFORM_DESKTOP)",
+      description = "Set window state: maximized, if resizable",
       returnType = "void"
     },
     {
       name = "MinimizeWindow",
-      description = "Set window state: minimized, if resizable (only PLATFORM_DESKTOP)",
+      description = "Set window state: minimized, if resizable",
       returnType = "void"
     },
     {
       name = "RestoreWindow",
-      description = "Set window state: not minimized/maximized (only PLATFORM_DESKTOP)",
+      description = "Set window state: not minimized/maximized",
       returnType = "void"
     },
     {
       name = "SetWindowIcon",
-      description = "Set icon for window (single image, RGBA 32bit, only PLATFORM_DESKTOP)",
+      description = "Set icon for window (single image, RGBA 32bit)",
       returnType = "void",
       params = {
         {type = "Image", name = "image"}
@@ -3216,7 +3211,7 @@ return {
     },
     {
       name = "SetWindowIcons",
-      description = "Set icon for window (multiple images, RGBA 32bit, only PLATFORM_DESKTOP)",
+      description = "Set icon for window (multiple images, RGBA 32bit)",
       returnType = "void",
       params = {
         {type = "Image *", name = "images"},
@@ -3225,7 +3220,7 @@ return {
     },
     {
       name = "SetWindowTitle",
-      description = "Set title for window (only PLATFORM_DESKTOP and PLATFORM_WEB)",
+      description = "Set title for window",
       returnType = "void",
       params = {
         {type = "const char *", name = "title"}
@@ -3233,7 +3228,7 @@ return {
     },
     {
       name = "SetWindowPosition",
-      description = "Set window position on screen (only PLATFORM_DESKTOP)",
+      description = "Set window position on screen",
       returnType = "void",
       params = {
         {type = "int", name = "x"},
@@ -3277,7 +3272,7 @@ return {
     },
     {
       name = "SetWindowOpacity",
-      description = "Set window opacity [0.0f..1.0f] (only PLATFORM_DESKTOP)",
+      description = "Set window opacity [0.0f..1.0f]",
       returnType = "void",
       params = {
         {type = "float", name = "opacity"}
@@ -3285,7 +3280,7 @@ return {
     },
     {
       name = "SetWindowFocused",
-      description = "Set window focused (only PLATFORM_DESKTOP)",
+      description = "Set window focused",
       returnType = "void"
     },
     {
@@ -3320,7 +3315,7 @@ return {
     },
     {
       name = "GetCurrentMonitor",
-      description = "Get current connected monitor",
+      description = "Get current monitor where window is placed",
       returnType = "int"
     },
     {
@@ -3401,6 +3396,11 @@ return {
       name = "GetClipboardText",
       description = "Get clipboard text content",
       returnType = "const char *"
+    },
+    {
+      name = "GetClipboardImage",
+      description = "Get clipboard image content",
+      returnType = "Image"
     },
     {
       name = "EnableEventWaiting",
@@ -3589,8 +3589,8 @@ return {
       }
     },
     {
-      name = "IsShaderReady",
-      description = "Check if a shader is ready",
+      name = "IsShaderValid",
+      description = "Check if a shader is valid (loaded on GPU)",
       returnType = "bool",
       params = {
         {type = "Shader", name = "shader"}
@@ -4191,6 +4191,33 @@ return {
       }
     },
     {
+      name = "ComputeCRC32",
+      description = "Compute CRC32 hash code",
+      returnType = "unsigned int",
+      params = {
+        {type = "unsigned char *", name = "data"},
+        {type = "int", name = "dataSize"}
+      }
+    },
+    {
+      name = "ComputeMD5",
+      description = "Compute MD5 hash code, returns static int[4] (16 bytes)",
+      returnType = "unsigned int *",
+      params = {
+        {type = "unsigned char *", name = "data"},
+        {type = "int", name = "dataSize"}
+      }
+    },
+    {
+      name = "ComputeSHA1",
+      description = "Compute SHA1 hash code, returns static int[5] (20 bytes)",
+      returnType = "unsigned int *",
+      params = {
+        {type = "unsigned char *", name = "data"},
+        {type = "int", name = "dataSize"}
+      }
+    },
+    {
       name = "LoadAutomationEventList",
       description = "Load automation events list from file, NULL for empty list, capacity = MAX_AUTOMATION_EVENTS",
       returnType = "AutomationEventList",
@@ -4259,7 +4286,7 @@ return {
     },
     {
       name = "IsKeyPressedRepeat",
-      description = "Check if a key has been pressed again (Only PLATFORM_DESKTOP)",
+      description = "Check if a key has been pressed again",
       returnType = "bool",
       params = {
         {type = "int", name = "key"}
@@ -4391,12 +4418,13 @@ return {
     },
     {
       name = "SetGamepadVibration",
-      description = "Set gamepad vibration for both motors",
+      description = "Set gamepad vibration for both motors (duration in seconds)",
       returnType = "void",
       params = {
         {type = "int", name = "gamepad"},
         {type = "float", name = "leftMotor"},
-        {type = "float", name = "rightMotor"}
+        {type = "float", name = "rightMotor"},
+        {type = "float", name = "duration"}
       }
     },
     {
@@ -4550,7 +4578,7 @@ return {
     },
     {
       name = "GetGestureHoldDuration",
-      description = "Get gesture hold time in milliseconds",
+      description = "Get gesture hold time in seconds",
       returnType = "float"
     },
     {
@@ -5237,6 +5265,17 @@ return {
       }
     },
     {
+      name = "CheckCollisionCircleLine",
+      description = "Check if circle collides with a line created betweeen two points [p1] and [p2]",
+      returnType = "bool",
+      params = {
+        {type = "Vector2", name = "center"},
+        {type = "float", name = "radius"},
+        {type = "Vector2", name = "p1"},
+        {type = "Vector2", name = "p2"}
+      }
+    },
+    {
       name = "CheckCollisionPointRec",
       description = "Check if point is inside rectangle",
       returnType = "bool",
@@ -5267,6 +5306,17 @@ return {
       }
     },
     {
+      name = "CheckCollisionPointLine",
+      description = "Check if point belongs to line created between two points [p1] and [p2] with defined margin in pixels [threshold]",
+      returnType = "bool",
+      params = {
+        {type = "Vector2", name = "point"},
+        {type = "Vector2", name = "p1"},
+        {type = "Vector2", name = "p2"},
+        {type = "int", name = "threshold"}
+      }
+    },
+    {
       name = "CheckCollisionPointPoly",
       description = "Check if point is within a polygon described by array of vertices",
       returnType = "bool",
@@ -5286,28 +5336,6 @@ return {
         {type = "Vector2", name = "startPos2"},
         {type = "Vector2", name = "endPos2"},
         {type = "Vector2 *", name = "collisionPoint"}
-      }
-    },
-    {
-      name = "CheckCollisionPointLine",
-      description = "Check if point belongs to line created between two points [p1] and [p2] with defined margin in pixels [threshold]",
-      returnType = "bool",
-      params = {
-        {type = "Vector2", name = "point"},
-        {type = "Vector2", name = "p1"},
-        {type = "Vector2", name = "p2"},
-        {type = "int", name = "threshold"}
-      }
-    },
-    {
-      name = "CheckCollisionCircleLine",
-      description = "Check if circle collides with a line created betweeen two points [p1] and [p2]",
-      returnType = "bool",
-      params = {
-        {type = "Vector2", name = "center"},
-        {type = "float", name = "radius"},
-        {type = "Vector2", name = "p1"},
-        {type = "Vector2", name = "p2"}
       }
     },
     {
@@ -5337,16 +5365,6 @@ return {
         {type = "int", name = "height"},
         {type = "int", name = "format"},
         {type = "int", name = "headerSize"}
-      }
-    },
-    {
-      name = "LoadImageSvg",
-      description = "Load image from SVG file data or string with specified size",
-      returnType = "Image",
-      params = {
-        {type = "const char *", name = "fileNameOrString"},
-        {type = "int", name = "width"},
-        {type = "int", name = "height"}
       }
     },
     {
@@ -5393,8 +5411,8 @@ return {
       returnType = "Image"
     },
     {
-      name = "IsImageReady",
-      description = "Check if an image is ready",
+      name = "IsImageValid",
+      description = "Check if an image is valid (data and parameters)",
       returnType = "bool",
       params = {
         {type = "Image", name = "image"}
@@ -6158,8 +6176,8 @@ return {
       }
     },
     {
-      name = "IsTextureReady",
-      description = "Check if a texture is ready",
+      name = "IsTextureValid",
+      description = "Check if a texture is valid (loaded in GPU)",
       returnType = "bool",
       params = {
         {type = "Texture2D", name = "texture"}
@@ -6174,8 +6192,8 @@ return {
       }
     },
     {
-      name = "IsRenderTextureReady",
-      description = "Check if a render texture is ready",
+      name = "IsRenderTextureValid",
+      description = "Check if a render texture is valid (loaded in GPU)",
       returnType = "bool",
       params = {
         {type = "RenderTexture2D", name = "target"}
@@ -6505,8 +6523,8 @@ return {
       }
     },
     {
-      name = "IsFontReady",
-      description = "Check if a font is ready",
+      name = "IsFontValid",
+      description = "Check if a font is valid (font data loaded, WARNING: GPU texture not checked)",
       returnType = "bool",
       params = {
         {type = "Font", name = "font"}
@@ -7185,8 +7203,8 @@ return {
       }
     },
     {
-      name = "IsModelReady",
-      description = "Check if a model is ready",
+      name = "IsModelValid",
+      description = "Check if a model is valid (loaded in GPU, VAO/VBOs)",
       returnType = "bool",
       params = {
         {type = "Model", name = "model"}
@@ -7539,8 +7557,8 @@ return {
       returnType = "Material"
     },
     {
-      name = "IsMaterialReady",
-      description = "Check if a material is ready",
+      name = "IsMaterialValid",
+      description = "Check if a material is valid (shader assigned, map textures loaded in GPU)",
       returnType = "bool",
       params = {
         {type = "Material", name = "material"}
@@ -7585,7 +7603,17 @@ return {
     },
     {
       name = "UpdateModelAnimation",
-      description = "Update model animation pose",
+      description = "Update model animation pose (CPU)",
+      returnType = "void",
+      params = {
+        {type = "Model", name = "model"},
+        {type = "ModelAnimation", name = "anim"},
+        {type = "int", name = "frame"}
+      }
+    },
+    {
+      name = "UpdateModelAnimationBones",
+      description = "Update model animation mesh bone matrices (GPU skinning)",
       returnType = "void",
       params = {
         {type = "Model", name = "model"},
@@ -7617,16 +7645,6 @@ return {
       params = {
         {type = "Model", name = "model"},
         {type = "ModelAnimation", name = "anim"}
-      }
-    },
-    {
-      name = "UpdateModelAnimationBoneMatrices",
-      description = "Update model animation mesh bone matrices (Note GPU skinning does not work on Mac)",
-      returnType = "void",
-      params = {
-        {type = "Model", name = "model"},
-        {type = "ModelAnimation", name = "anim"},
-        {type = "int", name = "frame"}
       }
     },
     {
@@ -7758,8 +7776,8 @@ return {
       }
     },
     {
-      name = "IsWaveReady",
-      description = "Checks if wave data is ready",
+      name = "IsWaveValid",
+      description = "Checks if wave data is valid (data loaded and parameters)",
       returnType = "bool",
       params = {
         {type = "Wave", name = "wave"}
@@ -7790,8 +7808,8 @@ return {
       }
     },
     {
-      name = "IsSoundReady",
-      description = "Checks if a sound is ready",
+      name = "IsSoundValid",
+      description = "Checks if a sound is valid (data loaded and buffers initialized)",
       returnType = "bool",
       params = {
         {type = "Sound", name = "sound"}
@@ -7980,8 +7998,8 @@ return {
       }
     },
     {
-      name = "IsMusicReady",
-      description = "Checks if a music stream is ready",
+      name = "IsMusicValid",
+      description = "Checks if a music stream is valid (context and buffers initialized)",
       returnType = "bool",
       params = {
         {type = "Music", name = "music"}
@@ -8106,8 +8124,8 @@ return {
       }
     },
     {
-      name = "IsAudioStreamReady",
-      description = "Checks if an audio stream is ready",
+      name = "IsAudioStreamValid",
+      description = "Checks if an audio stream is valid (buffers initialized)",
       returnType = "bool",
       params = {
         {type = "AudioStream", name = "stream"}
