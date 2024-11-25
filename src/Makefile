@@ -582,9 +582,9 @@ ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
 endif
 
 ifeq ($(PLATFORM),PLATFORM_PSP)
-	SDL_INCLUDE_PATH      ?=$(PSPDEV)/psp/include/SDL2
-	SDL_LIBRARY_PATH      ?= $(PSPDEV)/psp/lib/
-	SDL_LIBRARIES         ?= -lSDL2 -lSDL2main
+	# SDL_INCLUDE_PATH      ?=$(PSPDEV)/psp/include/SDL2
+	# SDL_LIBRARY_PATH      ?= $(PSPDEV)/psp/lib/
+	# SDL_LIBRARIES         ?= -lSDL2 -lSDL2main
     CFLAGS = -Wl,-q -Wall -Wno-incompatible-pointer-types -Wno-pointer-sign -O3 -nostartfiles -D__PSP__ -D$(PLATFORM) -D$(GRAPHICS) 
     INCLUDE_PATHS = -I. -Iinclude -I$(PSPDEV)/psp/include -I$(PSPDEV)/psp/sdk/include  -I$(PSPDEV)/psp/include/SDL2 
 
