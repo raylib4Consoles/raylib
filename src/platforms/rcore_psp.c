@@ -406,9 +406,14 @@ void PollInputEvents(void)
     // Reset key repeats
     for (int i = 0; i < MAX_KEYBOARD_KEYS; i++) CORE.Input.Keyboard.keyRepeatInFrame[i] = 0;
 
+    // Save previous gamepad button states
+    for (int i = 0; i < MAX_GAMEPAD_BUTTONS; i++)
+    {
+        CORE.Input.Gamepad.previousButtonState[0][i] = CORE.Input.Gamepad.currentButtonState[0][i];
+    }
+
     // Reset last gamepad button/axis registered state
     CORE.Input.Gamepad.lastButtonPressed = 0; // GAMEPAD_BUTTON_UNKNOWN
-    //CORE.Input.Gamepad.axisCount = 0;
 
     // Register previous touch states
     for (int i = 0; i < MAX_TOUCH_POINTS; i++) CORE.Input.Touch.previousTouchState[i] = CORE.Input.Touch.currentTouchState[i];
@@ -426,7 +431,63 @@ void PollInputEvents(void)
     //    CORE.Input.Keyboard.keyRepeatInFrame[i] = 0;
     //}
 
-    // TODO: Poll input events for current plaform
+    // Poll input events for PSP
+    SceCtrlData pad;
+    sceCtrlReadBufferPositive(&pad, 1); // Read PSP controller input
+
+    // Map PSP buttons to raylib gamepad buttons
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_RIGHT_FACE_DOWN] = (pad.Buttons & PSP_CTRL_CROSS) ? 1 : 0;    // Cross button
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_RIGHT_FACE_RIGHT] = (pad.Buttons & PSP_CTRL_CIRCLE) ? 1 : 0;  // Circle button
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_RIGHT_FACE_LEFT] = (pad.Buttons & PSP_CTRL_SQUARE) ? 1 : 0;   // Square button
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_RIGHT_FACE_UP] = (pad.Buttons & PSP_CTRL_TRIANGLE) ? 1 : 0;   // Triangle button
+
+    // DPAD
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_LEFT_FACE_UP] = (pad.Buttons & PSP_CTRL_UP) ? 1 : 0;
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_LEFT_FACE_RIGHT] = (pad.Buttons & PSP_CTRL_RIGHT) ? 1 : 0;
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_LEFT_FACE_DOWN] = (pad.Buttons & PSP_CTRL_DOWN) ? 1 : 0;
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_LEFT_FACE_LEFT] = (pad.Buttons & PSP_CTRL_LEFT) ? 1 : 0;
+
+    // Other buttons
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_LEFT_TRIGGER_1] = (pad.Buttons & PSP_CTRL_LTRIGGER) ? 1 : 0;
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_RIGHT_TRIGGER_1] = (pad.Buttons & PSP_CTRL_RTRIGGER) ? 1 : 0;
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_MIDDLE_LEFT] = (pad.Buttons & PSP_CTRL_SELECT) ? 1 : 0;      // Select button
+    CORE.Input.Gamepad.currentButtonState[0][GAMEPAD_BUTTON_MIDDLE_RIGHT] = (pad.Buttons & PSP_CTRL_START) ? 1 : 0;      // Start button
+
+    // Set analog stick values
+    CORE.Input.Gamepad.axisCount[0] = 2;
+    CORE.Input.Gamepad.axisCount[1] = 2; // Available on PSP Go with DualShock 3
+    
+    // Normalize analog values from [0..255] to [-1..1]
+    CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_LEFT_X] = ((float)pad.Lx - 128.0f)/128.0f;
+    CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_LEFT_Y] = ((float)pad.Ly - 128.0f)/128.0f;
+    
+    // Apply deadzone to analog stick input (values in range [-0.2..0.2] are discarded)
+    float deadZone = 0.2f;
+    if ((CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_LEFT_X] < deadZone) && 
+        (CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_LEFT_X] > -deadZone)) CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_LEFT_X] = 0.0f;
+    if ((CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_LEFT_Y] < deadZone) && 
+        (CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_LEFT_Y] > -deadZone)) CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_LEFT_Y] = 0.0f;
+
+    // Normalize right analog values from [0..255] to [-1..1]
+    // NOTE: Right analog stick is not available on PSP, but it is apparently available on PSP Go with DualShock 3
+    CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_RIGHT_X] = ((float)pad.Rsrv[0] - 128.0f)/128.0f;
+    CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_RIGHT_Y] = ((float)pad.Rsrv[1] - 128.0f)/128.0f;
+
+    // Apply deadzone to right analog stick input (values in range [-0.2..0.2] are discarded)
+    if ((CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_RIGHT_X] < deadZone) && 
+        (CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_RIGHT_X] > -deadZone)) CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_RIGHT_X] = 0.0f;
+    if ((CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_RIGHT_Y] < deadZone) &&
+        (CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_RIGHT_Y] > -deadZone)) CORE.Input.Gamepad.axisState[0][GAMEPAD_AXIS_RIGHT_Y] = 0.0f;
+    
+    // Check if any button was pressed for the first time this frame
+    for (int i = 0; i < MAX_GAMEPAD_BUTTONS; i++)
+    {
+        if (CORE.Input.Gamepad.currentButtonState[0][i] && !CORE.Input.Gamepad.previousButtonState[0][i])
+        {
+            CORE.Input.Gamepad.lastButtonPressed = i;
+            break;
+        }
+    }
 }
 
 //----------------------------------------------------------------------------------
@@ -495,7 +556,11 @@ int InitPlatform(void)
     sceCtrlSetSamplingCycle(0);
     sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 
-
+    // Mark the first gamepad as ready
+    CORE.Input.Gamepad.ready[0] = true;
+    
+    // Set PSP controller name
+    strcpy(CORE.Input.Gamepad.name[0], "PSP Controller");
 
     CORE.Window.fullscreen = true;
     CORE.Window.flags |= FLAG_FULLSCREEN_MODE;
