@@ -511,6 +511,16 @@ void DrawSphereEx(Vector3 centerPos, float radius, int rings, int slices, Color 
     rlPopMatrix();
 }
 
+/* The Dreamcast's GCC compiler for SuperH has a bug with -ffast-math enabled
+   which causes the compiler to ICE on the following two functions. This
+   workaround solves the ICE while still using the SH4's fast trig instructions
+   for the math.
+*/
+#if defined(__DREAMCAST__)
+    #include <kos.h>
+    #define sinf(s) fsin(s)
+    #define cosf(s) fcos(s)
+#endif
 // Draw sphere wires
 void DrawSphereWires(Vector3 centerPos, float radius, int rings, int slices, Color color)
 {
@@ -610,6 +620,11 @@ void DrawCylinder(Vector3 position, float radiusTop, float radiusBottom, float h
         rlEnd();
     rlPopMatrix();
 }
+
+#if defined(__DREAMCAST__)
+#   undef sinf
+#   undef cosf
+#endif
 
 // Draw a cylinder with base at startPos and top at endPos
 // NOTE: It could be also used for pyramid and cone
