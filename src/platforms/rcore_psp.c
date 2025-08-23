@@ -493,11 +493,10 @@ void PollInputEvents(void)
 //----------------------------------------------------------------------------------
 // Module Internal Functions Definition
 //----------------------------------------------------------------------------------
-int done = 0;
 /* Exit callback */
 int exit_callback(int arg1, int arg2, void *common)
 {
-    done = 1;
+    CORE.Window.shouldClose = true;
     return 0;
 }
 
@@ -725,6 +724,7 @@ int InitPlatform(void)
 void ClosePlatform(void)
 {
     // TODO: De-initialize graphics, inputs and more
+    sceKernelExitGame();
 }
 
 // EOF
