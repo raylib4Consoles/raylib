@@ -529,7 +529,7 @@ int InitPlatform(void)
         EGL_GREEN_SIZE, 1,
         EGL_BLUE_SIZE, 1,
         EGL_ALPHA_SIZE, 0,
-        EGL_DEPTH_SIZE, 0,
+        EGL_DEPTH_SIZE, 1,
         EGL_NONE
     };
     
