@@ -1,6 +1,8 @@
 /*******************************************************************************************
 *
-*   raylib [models] example - loading gltf with animations
+*   raylib [models] example - loading gltf animations
+*
+*   Example complexity rating: [★☆☆☆] 1/4
 *
 *   LIMITATIONS:
 *     - Only supports 1 armature per file, and skips loading it if there are multiple armatures
@@ -14,7 +16,7 @@
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2020-2024 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2020-2025 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
@@ -43,7 +45,7 @@ int main(void)
     // Load gltf model
     Model model = LoadModel("resources/models/gltf/robot.glb");
     Vector3 position = { 0.0f, 0.0f, 0.0f }; // Set model position
-    
+
     // Load gltf model animations
     int animsCount = 0;
     unsigned int animIndex = 0;

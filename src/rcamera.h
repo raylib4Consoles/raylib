@@ -20,7 +20,7 @@
 *
 *   LICENSE: zlib/libpng
 *
-*   Copyright (c) 2022-2024 Christoph Wagner (@Crydsch) & Ramon Santamaria (@raysan5)
+*   Copyright (c) 2022-2025 Christoph Wagner (@Crydsch) & Ramon Santamaria (@raysan5)
 *
 *   This software is provided "as-is", without any express or implied warranty. In no event
 *   will the authors be held liable for any damages arising from the use of this software.
@@ -65,8 +65,8 @@
 #endif
 
 #if defined(RCAMERA_STANDALONE)
-    #define CAMERA_CULL_DISTANCE_NEAR      0.01
-    #define CAMERA_CULL_DISTANCE_FAR    1000.0
+    #define CAMERA_CULL_DISTANCE_NEAR      0.05
+    #define CAMERA_CULL_DISTANCE_FAR    4000.0
 #else
     #define CAMERA_CULL_DISTANCE_NEAR   RL_CULL_DISTANCE_NEAR
     #define CAMERA_CULL_DISTANCE_FAR    RL_CULL_DISTANCE_FAR
@@ -154,7 +154,7 @@ RLAPI void CameraPitch(Camera *camera, float angle, bool lockView, bool rotateAr
 RLAPI void CameraRoll(Camera *camera, float angle);
 
 RLAPI Matrix GetCameraViewMatrix(Camera *camera);
-RLAPI Matrix GetCameraProjectionMatrix(Camera* camera, float aspect);
+RLAPI Matrix GetCameraProjectionMatrix(Camera *camera, float aspect);
 
 #if defined(__cplusplus)
 }

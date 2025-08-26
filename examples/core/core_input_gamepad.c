@@ -1,6 +1,8 @@
 /*******************************************************************************************
 *
-*   raylib [core] example - Gamepad input
+*   raylib [core] example - gamepad input
+*
+*   Example complexity rating: [★☆☆☆] 1/4
 *
 *   NOTE: This example requires a Gamepad connected to the system
 *         raylib is configured to work with the following gamepads:
@@ -13,7 +15,7 @@
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2013-2024 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2013-2025 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
@@ -254,11 +256,11 @@ int main(void)
 
                 }
 
-                DrawText(TextFormat("DETECTED AXIS [%i]:", GetGamepadAxisCount(0)), 10, 50, 10, MAROON);
+                DrawText(TextFormat("DETECTED AXIS [%i]:", GetGamepadAxisCount(gamepad)), 10, 50, 10, MAROON);
 
-                for (int i = 0; i < GetGamepadAxisCount(0); i++)
+                for (int i = 0; i < GetGamepadAxisCount(gamepad); i++)
                 {
-                    DrawText(TextFormat("AXIS %i: %.02f", i, GetGamepadAxisMovement(0, i)), 20, 70 + 20*i, 10, DARKGRAY);
+                    DrawText(TextFormat("AXIS %i: %.02f", i, GetGamepadAxisMovement(gamepad, i)), 20, 70 + 20*i, 10, DARKGRAY);
                 }
 
                 if (GetGamepadButtonPressed() != GAMEPAD_BUTTON_UNKNOWN) DrawText(TextFormat("DETECTED BUTTON: %i", GetGamepadButtonPressed()), 10, 430, 10, RED);

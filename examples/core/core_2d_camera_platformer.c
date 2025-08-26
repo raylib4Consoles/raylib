@@ -1,6 +1,8 @@
 /*******************************************************************************************
 *
-*   raylib [core] example - 2D Camera platformer
+*   raylib [core] example - 2d camera platformer
+*
+*   Example complexity rating: [★★★☆] 3/4
 *
 *   Example originally created with raylib 2.5, last time updated with raylib 3.0
 *
@@ -9,7 +11,7 @@
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2019-2024 arvyy (@arvyy)
+*   Copyright (c) 2019-2025 arvyy (@arvyy)
 *
 ********************************************************************************************/
 
@@ -52,7 +54,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
+    InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera platformer");
 
     Player player = { 0 };
     player.position = (Vector2){ 400, 280 };
@@ -135,7 +137,7 @@ int main(void)
 
                 Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40.0f, 40.0f };
                 DrawRectangleRec(playerRect, RED);
-                
+
                 DrawCircleV(player.position, 5.0f, GOLD);
 
             EndMode2D();

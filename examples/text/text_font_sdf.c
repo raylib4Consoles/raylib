@@ -1,13 +1,15 @@
 /*******************************************************************************************
 *
-*   raylib [text] example - Font SDF loading
+*   raylib [text] example - font SDF loading
+*
+*   Example complexity rating: [★★★☆] 3/4
 *
 *   Example originally created with raylib 1.3, last time updated with raylib 4.0
 *
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2015-2024 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2015-2025 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
@@ -31,7 +33,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [text] example - SDF fonts");
+    InitWindow(screenWidth, screenHeight, "raylib [text] example - font SDF loading");
 
     // NOTE: Textures/Fonts MUST be loaded after Window initialization (OpenGL context is required)
 

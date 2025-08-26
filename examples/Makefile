@@ -20,6 +20,8 @@
 #         - Linux (X11 desktop mode)
 #         - macOS/OSX (x64, arm64 (not tested))
 #         - Others (not tested)
+#     > PLATFORM_WEB_RGFW:
+#         - HTML5 (WebAssembly)
 #     > PLATFORM_WEB:
 #         - HTML5 (WebAssembly)
 #     > PLATFORM_DRM:
@@ -28,7 +30,7 @@
 #     > PLATFORM_ANDROID:
 #         - Android (ARM, ARM64)
 #
-#   Copyright (c) 2013-2024 Ramon Santamaria (@raysan5)
+#   Copyright (c) 2013-2025 Ramon Santamaria (@raysan5)
 #
 #   This software is provided "as-is", without any express or implied warranty. In no event
 #   will the authors be held liable for any damages arising from the use of this software.
@@ -51,13 +53,18 @@
 
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
-# Define target platform: PLATFORM_DESKTOP, PLATFORM_DESKTOP_SDL, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB
+# Define target platform: PLATFORM_DESKTOP, PLATFORM_DESKTOP_SDL, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB, PLATFORM_WEB_RGFW
 PLATFORM              ?= PLATFORM_DESKTOP
 
-ifeq ($(PLATFORM), PLATFORM_DESKTOP)
-    TARGET_PLATFORM = PLATFORM_DESKTOP_GLFW
+ifeq ($(PLATFORM),$(filter $(PLATFORM),PLATFORM_DESKTOP_GLFW PLATFORM_DESKTOP_SDL PLATFORM_DESKTOP_RGFW))
+    TARGET_PLATFORM := $(PLATFORM)
+    override PLATFORM = PLATFORM_DESKTOP
 else
-    TARGET_PLATFORM = $(PLATFORM)
+    ifeq ($(PLATFORM), PLATFORM_DESKTOP)
+        TARGET_PLATFORM = PLATFORM_DESKTOP_GLFW
+    else
+        TARGET_PLATFORM = $(PLATFORM)
+    endif
 endif
 
 # Define required raylib variables
@@ -89,7 +96,6 @@ SDL_INCLUDE_PATH      ?= $(RAYLIB_SRC_PATH)/external/SDL2/include
 SDL_LIBRARY_PATH      ?= $(RAYLIB_SRC_PATH)/external/SDL2/lib
 SDL_LIBRARIES         ?= -lSDL2 -lSDL2main
 
-
 # Use Wayland display server protocol on Linux desktop (by default it uses X11 windowing system)
 # NOTE: This variable is only used for PLATFORM_OS: LINUX
 USE_WAYLAND_DISPLAY   ?= FALSE
@@ -100,9 +106,12 @@ BUILD_WEB_SHELL       ?= $(RAYLIB_PATH)/src/minshell.html
 BUILD_WEB_HEAP_SIZE   ?= 134217728
 BUILD_WEB_RESOURCES   ?= TRUE
 BUILD_WEB_RESOURCES_PATH  ?= $(dir $<)resources@resources
+# Use WebGL2 backend (OpenGL 3.0)
+# WARNING: Requires raylib compiled with GRAPHICS_API_OPENGL_ES3
+BUILD_WEB_WEBGL2      ?= FALSE
 
 # Determine PLATFORM_OS when required
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW PLATFORM_DESKTOP_SDL PLATFORM_DESKTOP_RGFW PLATFORM_WEB))
+ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW PLATFORM_DESKTOP_SDL PLATFORM_DESKTOP_RGFW PLATFORM_WEB PLATFORM_WEB_RGFW))
     # No uname.exe on MinGW!, but OS=Windows_NT on Windows!
     # ifeq ($(UNAME),Msys) -> Windows
     ifeq ($(OS),Windows_NT)
@@ -153,7 +162,7 @@ endif
 # Define raylib release directory for compiled library
 RAYLIB_RELEASE_PATH    ?= $(RAYLIB_PATH)/src
 
-ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
     ifeq ($(PLATFORM_OS),WINDOWS)
         # Emscripten required variables
 		EMSDK_PATH         ?= C:/raylib/emsdk
@@ -179,7 +188,7 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
         CC = clang
     endif
 endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
     # HTML5 emscripten compiler
     # WARNING: To compile to HTML5, code must be redesigned
     # to use emscripten.h and emscripten_set_main_loop()
@@ -198,7 +207,7 @@ endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
     MAKE = mingw32-make
 endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
     ifeq ($(OS),Windows_NT)
         MAKE = mingw32-make
     else
@@ -226,11 +235,8 @@ CFLAGS = -Wall -std=c99 -D_DEFAULT_SOURCE -Wno-missing-braces -Wunused-result
 
 ifeq ($(BUILD_MODE),DEBUG)
     CFLAGS += -g -D_DEBUG
-    ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
-        CFLAGS += -sASSERTIONS=1 --profiling
-    endif
 else
-    ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+   ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
         ifeq ($(BUILD_WEB_ASYNCIFY),TRUE)
             CFLAGS += -O3
         else
@@ -266,8 +272,8 @@ endif
 # NOTE: Some external/extras libraries could be required (stb, easings...)
 #------------------------------------------------------------------------------------------------
 INCLUDE_PATHS = -I. -I$(RAYLIB_PATH)/src -I$(RAYLIB_PATH)/src/external $(EXTRA_INCLUDE_PATHS)
-# Define additional directories containing required header files
 
+# Define additional directories containing required header files
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
     ifeq ($(PLATFORM_OS),BSD)
         INCLUDE_PATHS += -I$(RAYLIB_INCLUDE_PATH) -I/usr/pkg/include -I/usr/X11R7/include
@@ -282,11 +288,6 @@ endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
     INCLUDE_PATHS += -I$(RAYLIB_INCLUDE_PATH)
     INCLUDE_PATHS += -I/usr/include/libdrm
-endif
-
-# Include GLFW required for examples/others/rlgl_standalone.c
-ifeq ($(USE_EXTERNAL_GLFW),FALSE)
-all others: INCLUDE_PATHS += -I$(RAYLIB_PATH)/src/external/glfw/include
 endif
 
 # Define library paths containing required libs: LDFLAGS
@@ -320,29 +321,41 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_SDL)
     endif
     LDFLAGS += -L$(SDL_LIBRARY_PATH)
 endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
     # -Os                        # size optimization
     # -O2                        # optimization level 2, if used, also set --memory-init-file 0
-    # -sUSE_GLFW=3              # Use glfw3 library (context/input management)
-    # -sALLOW_MEMORY_GROWTH=1   # to allow memory resizing -> WARNING: Audio buffers could FAIL!
-    # -sTOTAL_MEMORY=16777216   # to specify heap memory size (default = 16MB) (67108864 = 64MB)
-    # -sUSE_PTHREADS=1          # multithreading support
-    # -sWASM=0                  # disable Web Assembly, emitted by default
-    # -sASYNCIFY                # lets synchronous C/C++ code interact with asynchronous JS
-    # -sFORCE_FILESYSTEM=1      # force filesystem to load/save files data
-    # -sASSERTIONS=1            # enable runtime checks for common memory allocation errors (-O1 and above turn it off)
-    # -sGL_ENABLE_GET_PROC_ADDRESS # enable using the *glGetProcAddress() family of functions, required for extensions loading
+    # -sUSE_GLFW=3               # Use glfw3 library (context/input management)
+    # -sALLOW_MEMORY_GROWTH=1    # to allow memory resizing -> WARNING: Audio buffers could FAIL!
+    # -sTOTAL_MEMORY=16777216    # to specify heap memory size (default = 16MB) (67108864 = 64MB)
+    # -sUSE_PTHREADS=1           # multithreading support
+    # -sWASM=0                   # disable Web Assembly, emitted by default
+    # -sASYNCIFY                 # lets synchronous C/C++ code interact with asynchronous JS
+    # -sFORCE_FILESYSTEM=1       # force filesystem to load/save files data
+    # -sASSERTIONS=1             # enable runtime checks for common memory allocation errors (-O1 and above turn it off)
+    # -sMINIFY_HTML=0            # minify generated html from shell.html
     # --profiling                # include information for code profiling
     # --memory-init-file 0       # to avoid an external memory initialization code file (.mem)
     # --preload-file resources   # specify a resources folder for data compilation
     # --source-map-base          # allow debugging in browser with source map
-    LDFLAGS += -sUSE_GLFW=3 -sTOTAL_MEMORY=$(BUILD_WEB_HEAP_SIZE) -sFORCE_FILESYSTEM=1
+    # --shell-file shell.html    # define a custom shell .html and output extension
+    LDFLAGS += -sTOTAL_MEMORY=$(BUILD_WEB_HEAP_SIZE) -sFORCE_FILESYSTEM=1 -sEXPORTED_RUNTIME_METHODS=ccall -sMINIFY_HTML=0
+
+    # Using GLFW3 library (instead of RGFW)
+    ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+        LDFLAGS += -sUSE_GLFW=3
+    endif
 
     # Build using asyncify
     ifeq ($(BUILD_WEB_ASYNCIFY),TRUE)
         LDFLAGS += -sASYNCIFY
     endif
 
+    # NOTE: Flags required for WebGL 2.0 (OpenGL ES 3.0)
+    # WARNING: Requires raylib compiled with GRAPHICS_API_OPENGL_ES3
+    ifeq ($(BUILD_WEB_WEBGL2),TRUE)
+        LDFLAGS += -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2
+    endif
+    
     # Add resources building if required
     ifeq ($(BUILD_WEB_RESOURCES),TRUE)
         LDFLAGS += --preload-file $(BUILD_WEB_RESOURCES_PATH)
@@ -467,7 +480,7 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
         # NOTE: Required packages: libegl1-mesa-dev
         LDFLAGS += -L../src
         LDLIBS = -lraylib -lm
-        LDLIBS += -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+        LDLIBS += -framework Foundation -framework AppKit -framework IOKit -framework OpenGL -framework CoreVideo
     endif
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
@@ -475,13 +488,16 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
     # NOTE: Required packages: libasound2-dev (ALSA)
     LDLIBS = -lraylib -lGLESv2 -lEGL -lpthread -lrt -lm -lgbm -ldrm -ldl -latomic
 endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
     # Libraries for web (HTML5) compiling
-    LDLIBS = $(RAYLIB_RELEASE_PATH)/libraylib.a
+    LDLIBS = $(RAYLIB_RELEASE_PATH)/libraylib.web.a
 endif
+
+CURRENT_MAKEFILE = $(lastword $(MAKEFILE_LIST))
 
 # Define source code object files required
 #------------------------------------------------------------------------------------------------
+#EXAMPLES_LIST_START
 CORE = \
     core/core_2d_camera \
     core/core_2d_camera_mouse_zoom \
@@ -491,6 +507,7 @@ CORE = \
     core/core_3d_camera_free \
     core/core_3d_camera_mode \
     core/core_3d_camera_split_screen \
+    core/core_3d_camera_fps \
     core/core_3d_picking \
     core/core_automation_events \
     core/core_basic_screen_manager \
@@ -499,8 +516,8 @@ CORE = \
     core/core_custom_frame_control \
     core/core_custom_logging \
     core/core_drop_files \
+    core/core_high_dpi \
     core/core_input_gamepad \
-    core/core_input_gamepad_info \
     core/core_input_gestures \
     core/core_input_gestures_web \
     core/core_input_keys \
@@ -525,6 +542,8 @@ SHAPES = \
     shapes/shapes_bouncing_ball \
     shapes/shapes_collision_area \
     shapes/shapes_colors_palette \
+    shapes/shapes_digital_clock \
+    shapes/shapes_double_pendulum \
     shapes/shapes_draw_circle_sector \
     shapes/shapes_draw_rectangle_rounded \
     shapes/shapes_draw_ring \
@@ -535,10 +554,10 @@ SHAPES = \
     shapes/shapes_lines_bezier \
     shapes/shapes_logo_raylib \
     shapes/shapes_logo_raylib_anim \
+    shapes/shapes_rectangle_advanced \
     shapes/shapes_rectangle_scaling \
     shapes/shapes_splines_drawing \
-    shapes/shapes_top_down_lights \
-    shapes/shapes_rectangle_advanced
+    shapes/shapes_top_down_lights
 
 TEXTURES = \
     textures/textures_background_scrolling \
@@ -580,6 +599,7 @@ TEXT = \
     text/text_raylib_fonts \
     text/text_rectangle_bounds \
     text/text_unicode \
+    text/text_unicode_ranges \
     text/text_writing_anim
 
 MODELS = \
@@ -591,6 +611,7 @@ MODELS = \
     models/models_draw_cube_texture \
     models/models_first_person_maze \
     models/models_geometric_shapes \
+    models/models_gpu_skinning \
     models/models_heightmap \
     models/models_loading \
     models/models_loading_gltf \
@@ -602,9 +623,9 @@ MODELS = \
     models/models_point_rendering \
     models/models_rlgl_solar_system \
     models/models_skybox \
+    models/models_tesseract_view \
     models/models_waving_cubes \
-    models/models_yaw_pitch_roll \
-    models/models_gpu_skinning
+    models/models_yaw_pitch_roll
 
 SHADERS = \
     shaders/shaders_basic_lighting \
@@ -620,9 +641,11 @@ SHADERS = \
     shaders/shaders_mesh_instancing \
     shaders/shaders_model_shader \
     shaders/shaders_multi_sample2d \
+    shaders/shaders_normal_map \
     shaders/shaders_palette_switch \
     shaders/shaders_postprocessing \
     shaders/shaders_raymarching \
+    shaders/shaders_rounded_rectangle \
     shaders/shaders_shadowmap \
     shaders/shaders_shapes_textures \
     shaders/shaders_simple_mask \
@@ -631,8 +654,9 @@ SHADERS = \
     shaders/shaders_texture_outline \
     shaders/shaders_texture_tiling \
     shaders/shaders_texture_waves \
-    shaders/shaders_write_depth \
-    shaders/shaders_vertex_displacement
+    shaders/shaders_vertex_displacement \
+    shaders/shaders_view_depth \
+    shaders/shaders_write_depth
 
 AUDIO = \
     audio/audio_mixed_processor \
@@ -641,6 +665,7 @@ AUDIO = \
     audio/audio_raw_stream \
     audio/audio_sound_loading \
     audio/audio_sound_multi \
+    audio/audio_sound_positioning \
     audio/audio_stream_effects
 
 OTHERS = \
@@ -648,19 +673,14 @@ OTHERS = \
     others/embedded_files_loading \
     others/raylib_opengl_interop \
     others/raymath_vector_angle \
-    others/rlgl_compute_shader
-
-ifeq ($(TARGET_PLATFORM), PLATFORM_DESKTOP_GFLW)
-    OTHERS += others/rlgl_standalone
-endif
-    
-
-CURRENT_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+    others/rlgl_compute_shader \
+    others/rlgl_standalone
+#EXAMPLES_LIST_END
 
 # Define processes to execute
 #------------------------------------------------------------------------------------------------
 # Default target entry
-all: $(CORE) $(SHAPES) $(TEXT) $(TEXTURES) $(MODELS) $(SHADERS) $(AUDIO) $(OTHERS)
+all: $(CORE) $(SHAPES) $(TEXT) $(TEXTURES) $(MODELS) $(SHADERS) $(AUDIO)
 
 core: $(CORE)
 shapes: $(SHAPES)
@@ -669,14 +689,13 @@ text: $(TEXT)
 models: $(MODELS)
 shaders: $(SHADERS)
 audio: $(AUDIO)
-others: $(OTHERS)
 
 # Generic compilation pattern
 # NOTE: Examples must be ready for Android compilation!
 %: %.c
 ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
 	$(MAKE) -f Makefile.Android PROJECT_NAME=$@ PROJECT_SOURCE_FILES=$<
-else ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+else ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
 	$(MAKE) -f Makefile.Web $@
 else
 	$(CC) -o $@$(EXT) $< $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM) -D$(TARGET_PLATFORM)
@@ -705,7 +724,7 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
 	find . -type f -executable -delete
 	rm -fv *.o
 endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
     ifeq ($(PLATFORM_OS),WINDOWS)
 		del *.wasm *.html *.js *.data
     else

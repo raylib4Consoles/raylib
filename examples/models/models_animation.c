@@ -1,6 +1,8 @@
 /*******************************************************************************************
 *
-*   raylib [models] example - Load 3d model with animations and play them
+*   raylib [models] example - model animation
+*
+*   Example complexity rating: [★★☆☆] 2/4
 *
 *   Example originally created with raylib 2.5, last time updated with raylib 3.5
 *
@@ -9,13 +11,13 @@
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2019-2024 Culacant (@culacant) and Ramon Santamaria (@raysan5)
+*   Copyright (c) 2019-2025 Culacant (@culacant) and Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************
 *
-*   NOTE: To export a model from blender, make sure it is not posed, the vertices need to be 
-*         in the same position as they would be in edit mode and the scale of your models is 
-*         set to 0. Scaling can be done from the export menu.
+*   NOTE: To export a model from blender, make sure it is not posed, the vertices need to be
+*         in the same position as they would be in edit mode and the scale of your models is
+*         set to 0. Scaling can be done from the export menu
 *
 ********************************************************************************************/
 

@@ -1,6 +1,8 @@
 /*******************************************************************************************
 *
-*   raylib [shaders] example - Simple shader mask
+*   raylib [shaders] example - shader spotlight
+*
+*   Example complexity rating: [★★☆☆] 2/4
 *
 *   Example originally created with raylib 2.5, last time updated with raylib 3.7
 *
@@ -9,7 +11,7 @@
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2019-2024 Chris Camacho (@chriscamacho) and Ramon Santamaria (@raysan5)
+*   Copyright (c) 2019-2025 Chris Camacho (@chriscamacho) and Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************
 *
@@ -18,13 +20,13 @@
 *
 *   The right hand side of the screen there is just enough light to see whats
 *   going on without the spot light, great for a stealth type game where you
-*   have to avoid the spotlights.
+*   have to avoid the spotlights
 *
-*   The left hand side of the screen is in pitch dark except for where the spotlights are.
+*   The left hand side of the screen is in pitch dark except for where the spotlights are
 *
 *   Although this example doesn't scale like the letterbox example, you could integrate
 *   the two techniques, but by scaling the actual colour of the render texture rather
-*   than using alpha as a mask.
+*   than using alpha as a mask
 *
 ********************************************************************************************/
 
@@ -113,7 +115,7 @@ int main(void)
     }
 
     // Tell the shader how wide the screen is so we can have
-    // a pitch black half and a dimly lit half.
+    // a pitch black half and a dimly lit half
     unsigned int wLoc = GetShaderLocation(shdrSpot, "screenWidth");
     float sw = (float)GetScreenWidth();
     SetShaderValue(shdrSpot, wLoc, &sw, SHADER_UNIFORM_FLOAT);

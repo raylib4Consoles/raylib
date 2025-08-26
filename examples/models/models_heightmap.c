@@ -1,13 +1,15 @@
 /*******************************************************************************************
 *
-*   raylib [models] example - Heightmap loading and drawing
+*   raylib [models] example - heightmap terrain
+*
+*   Example complexity rating: [★☆☆☆] 1/4
 *
 *   Example originally created with raylib 1.8, last time updated with raylib 3.5
 *
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2015-2024 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2015-2025 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
@@ -23,7 +25,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [models] example - heightmap loading and drawing");
+    InitWindow(screenWidth, screenHeight, "raylib [models] example - heightmap terrain");
 
     // Define our custom camera to look into our 3d world
     Camera camera = { 0 };

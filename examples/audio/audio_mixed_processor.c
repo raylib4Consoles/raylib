@@ -1,6 +1,8 @@
 /*******************************************************************************************
 *
-*   raylib [audio] example - Mixed audio processing
+*   raylib [audio] example - mixed audio processing
+*
+*   Example complexity rating: [★★★★] 4/4
 *
 *   Example originally created with raylib 4.2, last time updated with raylib 4.2
 *
@@ -9,7 +11,7 @@
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2023 hkc (@hatkidchan)
+*   Copyright (c) 2023-2025 hkc (@hatkidchan)
 *
 ********************************************************************************************/
 #include "raylib.h"
@@ -53,7 +55,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [audio] example - processing mixed output");
+    InitWindow(screenWidth, screenHeight, "raylib [audio] example - mixed audio processing");
 
     InitAudioDevice();              // Initialize audio device
 

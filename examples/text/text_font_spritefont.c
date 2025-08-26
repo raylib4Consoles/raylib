@@ -1,6 +1,8 @@
 /*******************************************************************************************
 *
-*   raylib [text] example - Sprite font loading
+*   raylib [text] example - sprite font loading
+*
+*   Example complexity rating: [★☆☆☆] 1/4
 *
 *   NOTE: Sprite fonts should be generated following this conventions:
 *
@@ -10,14 +12,14 @@
 *     - Rectangles must be defined by a MAGENTA color background
 *
 *   Following those constraints, a font can be provided just by an image,
-*   this is quite handy to avoid additional font descriptor files (like BMFonts use).
+*   this is quite handy to avoid additional font descriptor files (like BMFonts use)
 *
 *   Example originally created with raylib 1.0, last time updated with raylib 1.0
 *
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2014-2024 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2014-2025 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 

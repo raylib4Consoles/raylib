@@ -2,15 +2,17 @@
 *
 *   raylib [shapes] example - easings rectangle array
 *
+*   Example complexity rating: [★★★☆] 3/4
+*
 *   NOTE: This example requires 'easings.h' library, provided on raylib/src. Just copy
-*   the library to same directory as example or make sure it's available on include path.
+*   the library to same directory as example or make sure it's available on include path
 *
 *   Example originally created with raylib 2.0, last time updated with raylib 2.5
 *
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2014-2024 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2014-2025 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 

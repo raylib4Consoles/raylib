@@ -5,7 +5,11 @@
 *   rlgl library is an abstraction layer for multiple OpenGL versions (1.1, 2.1, 3.3 Core, ES 2.0)
 *   that provides a pseudo-OpenGL 1.1 immediate-mode style API (rlVertex, rlTranslate, rlRotate...)
 *
-*   WARNING: This example is intended only for PLATFORM_DESKTOP and OpenGL 3.3 Core profile.
+*   Example complexity rating: [★★★★] 4/4
+*
+*   Example originally created with raylib 1.6, last time updated with raylib 4.0
+*
+*   WARNING: This example is intended only for PLATFORM_DESKTOP and OpenGL 3.3 Core profile
 *       It could work on other platforms if redesigned for those platforms (out-of-scope)
 *
 *   DEPENDENCIES:
@@ -29,7 +33,7 @@
 *   This example is licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software:
 *
-*   Copyright (c) 2014-2024 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2014-2025 Ramon Santamaria (@raysan5)
 *
 *   This software is provided "as-is", without any express or implied warranty. In no event
 *   will the authors be held liable for any damages arising from the use of this software.
@@ -44,7 +48,7 @@
 *     2. Altered source versions must be plainly marked as such, and must not be misrepresented
 *     as being the original software.
 *
-*     3. This notice may not be removed or altered from any source distribution.
+*     3. This notice may not be removed or altered from any source distribution
 *
 ********************************************************************************************/
 
@@ -133,7 +137,7 @@ int main(void)
 
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_DEPTH_BITS, 16);
-    
+
     // WARNING: OpenGL 3.3 Core profile only
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

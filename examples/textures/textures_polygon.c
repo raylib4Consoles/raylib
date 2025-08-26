@@ -1,15 +1,17 @@
 /*******************************************************************************************
 *
-*   raylib [shapes] example - Draw Textured Polygon
+*   raylib [textures] example - textured polygon
+*
+*   Example complexity rating: [★☆☆☆] 1/4
 *
 *   Example originally created with raylib 3.7, last time updated with raylib 3.7
 *
-*   Example contributed by Chris Camacho (@codifies) and reviewed by Ramon Santamaria (@raysan5)
+*   Example contributed by Chris Camacho (@chriscamacho) and reviewed by Ramon Santamaria (@raysan5)
 *
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2021-2024 Chris Camacho (@codifies) and Ramon Santamaria (@raysan5)
+*   Copyright (c) 2021-2025 Chris Camacho (@chriscamacho) and Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
@@ -32,7 +34,7 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
-    
+
     InitWindow(screenWidth, screenHeight, "raylib [textures] example - textured polygon");
 
     // Define texture coordinates to map our texture to poly
@@ -58,7 +60,7 @@ int main(void)
         points[i].x = (texcoords[i].x - 0.5f)*256.0f;
         points[i].y = (texcoords[i].y - 0.5f)*256.0f;
     }
-    
+
     // Define the vertices drawing position
     // NOTE: Initially same as points but updated every frame
     Vector2 positions[MAX_POINTS] = { 0 };
@@ -113,10 +115,9 @@ int main(void)
 // without crossing perimeter, points must be in anticlockwise order
 void DrawTexturePoly(Texture2D texture, Vector2 center, Vector2 *points, Vector2 *texcoords, int pointCount, Color tint)
 {
-    rlSetTexture(texture.id);
+    rlBegin(RL_TRIANGLES);
 
-    // Texturing is only supported on RL_QUADS
-    rlBegin(RL_QUADS);
+    rlSetTexture(texture.id);
 
         rlColor4ub(tint.r, tint.g, tint.b, tint.a);
 
@@ -127,9 +128,6 @@ void DrawTexturePoly(Texture2D texture, Vector2 center, Vector2 *points, Vector2
 
             rlTexCoord2f(texcoords[i].x, texcoords[i].y);
             rlVertex2f(points[i].x + center.x, points[i].y + center.y);
-
-            rlTexCoord2f(texcoords[i + 1].x, texcoords[i + 1].y);
-            rlVertex2f(points[i + 1].x + center.x, points[i + 1].y + center.y);
 
             rlTexCoord2f(texcoords[i + 1].x, texcoords[i + 1].y);
             rlVertex2f(points[i + 1].x + center.x, points[i + 1].y + center.y);

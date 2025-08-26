@@ -1,6 +1,8 @@
 /*******************************************************************************************
 *
-*   raylib [text] example - Unicode
+*   raylib [text] example - unicode emojis emojis
+*
+*   Example complexity rating: [★★★★] 4/4
 *
 *   Example originally created with raylib 2.5, last time updated with raylib 4.0
 *
@@ -9,7 +11,7 @@
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2019-2024 Vlad Adrian (@demizdor) and Ramon Santamaria (@raysan5)
+*   Copyright (c) 2019-2025 Vlad Adrian (@demizdor) and Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
@@ -161,7 +163,7 @@ int main(void)
     const int screenHeight = 450;
 
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);
-    InitWindow(screenWidth, screenHeight, "raylib [text] example - unicode");
+    InitWindow(screenWidth, screenHeight, "raylib [text] example - unicode emojis");
 
     // Load the font resources
     // NOTE: fontAsian is for asian languages,
@@ -282,7 +284,7 @@ int main(void)
                 int length = GetCodepointCount(messages[message].text);
                 const char *info = TextFormat("%s %u characters %i bytes", messages[message].language, length, size);
                 sz = MeasureTextEx(GetFontDefault(), info, 10, 1.0f);
-                
+
                 DrawText(info, (int)(textRect.x + textRect.width - sz.x), (int)(msgRect.y + msgRect.height - sz.y - 2), 10, RAYWHITE);
             }
             //------------------------------------------------------------------------------
@@ -376,9 +378,9 @@ static void DrawTextBoxedSelectable(Font font, const char *text, Rectangle rec, 
 
         // NOTE: When wordWrap is ON we first measure how much of the text we can draw before going outside of the rec container
         // We store this info in startLine and endLine, then we change states, draw the text between those two variables
-        // and change states again and again recursively until the end of the text (or until we get outside of the container).
+        // and change states again and again recursively until the end of the text (or until we get outside of the container)
         // When wordWrap is OFF we don't need the measure state so we go to the drawing state immediately
-        // and begin drawing on the next line before we can get outside the container.
+        // and begin drawing on the next line before we can get outside the container
         if (state == MEASURE_STATE)
         {
             // TODO: There are multiple types of spaces in UNICODE, maybe it's a good idea to add support for more
