@@ -523,7 +523,7 @@ void DrawSphereEx(Vector3 centerPos, float radius, int rings, int slices, Color 
    workaround solves the ICE while still using the SH4's fast trig instructions
    for the math.
 */
-#if defined(__DREAMCAST__)
+#if defined(PLATFORM_DREAMCAST)
     #include <kos.h>
     #define sinf(s) fsin(s)
     #define cosf(s) fcos(s)
@@ -628,9 +628,9 @@ void DrawCylinder(Vector3 position, float radiusTop, float radiusBottom, float h
     rlPopMatrix();
 }
 
-#if defined(__DREAMCAST__)
-#   undef sinf
-#   undef cosf
+#if defined(PLATFORM_DREAMCAST)
+   #undef sinf
+   #undef cosf
 #endif
 
 // Draw a cylinder with base at startPos and top at endPos
@@ -1472,14 +1472,18 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
     #define GL_TEXTURE_COORD_ARRAY  0x8078
 
     rlEnableTexture(material.maps[MATERIAL_MAP_DIFFUSE].texture.id);
-
+#if !defined(PLATFORM_DREAMCAST) && !defined(PLATFORM_NINTENDO64) && !defined(PLATFORM_PSP) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO)
     if (mesh.animVertices) rlEnableStatePointer(GL_VERTEX_ARRAY, mesh.animVertices);
     else rlEnableStatePointer(GL_VERTEX_ARRAY, mesh.vertices);
 
     rlEnableStatePointer(GL_TEXTURE_COORD_ARRAY, mesh.texcoords);
     if (mesh.normals) rlEnableStatePointer(GL_VERTEX_ARRAY, mesh.animNormals);
     else rlEnableStatePointer(GL_NORMAL_ARRAY, mesh.normals);
-
+#else
+    rlEnableStatePointer(GL_VERTEX_ARRAY, mesh.vertices);
+    rlEnableStatePointer(GL_TEXTURE_COORD_ARRAY, mesh.texcoords);
+    rlEnableStatePointer(GL_NORMAL_ARRAY, mesh.normals);
+#endif
     rlEnableStatePointer(GL_COLOR_ARRAY, mesh.colors);
 
     rlPushMatrix();

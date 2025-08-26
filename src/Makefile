@@ -952,7 +952,7 @@ PREFIX ?= $(N64_ROOTDIR)/mips64-elf
 endif
 
 ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
-PREFIX ?= $(KOS_PORTS)
+PREFIX ?= $(KOS_PORTS)/raylib4dc/inst
 endif
 
 ifeq ($(PLATFORM),PLATFORM_PSP)
