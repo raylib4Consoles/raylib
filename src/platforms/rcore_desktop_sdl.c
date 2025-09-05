@@ -111,7 +111,7 @@ extern CoreData CORE;                   // Global CORE state context
 static PlatformData platform = { 0 };   // Platform specific data
 
 //----------------------------------------------------------------------------------
-// Local Variables Definition
+// Global Variables Definition
 //----------------------------------------------------------------------------------
 #define SCANCODE_MAPPED_NUM 232
 static const KeyboardKey mapScancodeToKey[SCANCODE_MAPPED_NUM] = {
@@ -1485,8 +1485,8 @@ void PollInputEvents(void)
                         // if we are doing automatic DPI scaling, then the "screen" size is divided by the window scale
                         if (IsWindowState(FLAG_WINDOW_HIGHDPI))
                         {
-                            CORE.Window.screen.width = (int)(width / GetWindowScaleDPI().x);
-                            CORE.Window.screen.height = (int)(height / GetWindowScaleDPI().y);
+                            CORE.Window.screen.width = (int)(width/GetWindowScaleDPI().x);
+                            CORE.Window.screen.height = (int)(height/GetWindowScaleDPI().y);
                         }
                         else
                         {

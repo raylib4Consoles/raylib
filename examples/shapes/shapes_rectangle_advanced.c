@@ -21,6 +21,9 @@
 
 #include <math.h>
 
+//--------------------------------------------------------------------------------------
+// Module Functions Declaration
+//--------------------------------------------------------------------------------------
 // Draw rectangle with rounded edges and horizontal gradient, with options to choose side of roundness
 static void DrawRectangleRoundedGradientH(Rectangle rec, float roundnessLeft, float roundnessRight, int segments, Color left, Color right);
 
@@ -46,8 +49,8 @@ int main(void)
         //----------------------------------------------------------------------------------
         float width = GetScreenWidth()/2.0f, height = GetScreenHeight()/6.0f;
         Rectangle rec = {
-            GetScreenWidth() / 2.0f - width/2,
-            GetScreenHeight() / 2.0f - 5*(height/2),
+            GetScreenWidth()/2.0f - width/2,
+            GetScreenHeight()/2.0f - 5*(height/2),
             width, height
         };
         //--------------------------------------------------------------------------------------
@@ -83,6 +86,9 @@ int main(void)
     return 0;
 }
 
+//--------------------------------------------------------------------------------------
+// Module Functions Definition
+//--------------------------------------------------------------------------------------
 // Draw rectangle with rounded edges and horizontal gradient, with options to choose side of roundness
 // NOTE: Adapted from both 'DrawRectangleRounded()' and 'DrawRectangleGradientH()' raylib [rshapes] implementations
 static void DrawRectangleRoundedGradientH(Rectangle rec, float roundnessLeft, float roundnessRight, int segments, Color left, Color right)

@@ -394,7 +394,7 @@ Struct 13: Camera3D (5 fields)
   Field[1]: Vector3 position // Camera position
   Field[2]: Vector3 target // Camera target it looks-at
   Field[3]: Vector3 up // Camera up vector (rotation over its axis)
-  Field[4]: float fovy // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane width in orthographic
+  Field[4]: float fovy // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane height in world units in orthographic
   Field[5]: int projection // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
 Struct 14: Camera2D (4 fields)
   Name: Camera2D
@@ -3468,7 +3468,7 @@ Function 395: LoadFontEx() (4 input parameters)
   Description: Load font from file with extended parameters, use NULL for codepoints and 0 for codepointCount to load the default character set, font size is provided in pixels height
   Param[1]: fileName (type: const char *)
   Param[2]: fontSize (type: int)
-  Param[3]: codepoints (type: int *)
+  Param[3]: codepoints (type: const int *)
   Param[4]: codepointCount (type: int)
 Function 396: LoadFontFromImage() (3 input parameters)
   Name: LoadFontFromImage
@@ -3485,23 +3485,24 @@ Function 397: LoadFontFromMemory() (6 input parameters)
   Param[2]: fileData (type: const unsigned char *)
   Param[3]: dataSize (type: int)
   Param[4]: fontSize (type: int)
-  Param[5]: codepoints (type: int *)
+  Param[5]: codepoints (type: const int *)
   Param[6]: codepointCount (type: int)
 Function 398: IsFontValid() (1 input parameters)
   Name: IsFontValid
   Return type: bool
   Description: Check if a font is valid (font data loaded, WARNING: GPU texture not checked)
   Param[1]: font (type: Font)
-Function 399: LoadFontData() (6 input parameters)
+Function 399: LoadFontData() (7 input parameters)
   Name: LoadFontData
   Return type: GlyphInfo *
   Description: Load font data for further use
   Param[1]: fileData (type: const unsigned char *)
   Param[2]: dataSize (type: int)
   Param[3]: fontSize (type: int)
-  Param[4]: codepoints (type: int *)
+  Param[4]: codepoints (type: const int *)
   Param[5]: codepointCount (type: int)
   Param[6]: type (type: int)
+  Param[7]: glyphCount (type: int *)
 Function 400: GenImageFontAtlas() (6 input parameters)
   Name: GenImageFontAtlas
   Return type: Image
@@ -3680,11 +3681,12 @@ Function 425: LoadTextLines() (2 input parameters)
   Description: Load text as separate lines ('\n')
   Param[1]: text (type: const char *)
   Param[2]: count (type: int *)
-Function 426: UnloadTextLines() (1 input parameters)
+Function 426: UnloadTextLines() (2 input parameters)
   Name: UnloadTextLines
   Return type: void
   Description: Unload text lines
   Param[1]: text (type: char **)
+  Param[2]: lineCount (type: int)
 Function 427: TextCopy() (2 input parameters)
   Name: TextCopy
   Return type: int

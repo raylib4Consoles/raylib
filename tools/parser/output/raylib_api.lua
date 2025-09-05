@@ -753,7 +753,7 @@ return {
         {
           type = "float",
           name = "fovy",
-          description = "Camera field-of-view aperture in Y (degrees) in perspective, used as near plane width in orthographic"
+          description = "Camera field-of-view aperture in Y (degrees) in perspective, used as near plane height in world units in orthographic"
         },
         {
           type = "int",
@@ -6550,7 +6550,7 @@ return {
       params = {
         {type = "const char *", name = "fileName"},
         {type = "int", name = "fontSize"},
-        {type = "int *", name = "codepoints"},
+        {type = "const int *", name = "codepoints"},
         {type = "int", name = "codepointCount"}
       }
     },
@@ -6573,7 +6573,7 @@ return {
         {type = "const unsigned char *", name = "fileData"},
         {type = "int", name = "dataSize"},
         {type = "int", name = "fontSize"},
-        {type = "int *", name = "codepoints"},
+        {type = "const int *", name = "codepoints"},
         {type = "int", name = "codepointCount"}
       }
     },
@@ -6593,9 +6593,10 @@ return {
         {type = "const unsigned char *", name = "fileData"},
         {type = "int", name = "dataSize"},
         {type = "int", name = "fontSize"},
-        {type = "int *", name = "codepoints"},
+        {type = "const int *", name = "codepoints"},
         {type = "int", name = "codepointCount"},
-        {type = "int", name = "type"}
+        {type = "int", name = "type"},
+        {type = "int *", name = "glyphCount"}
       }
     },
     {
@@ -6859,7 +6860,8 @@ return {
       description = "Unload text lines",
       returnType = "void",
       params = {
-        {type = "char **", name = "text"}
+        {type = "char **", name = "text"},
+        {type = "int", name = "lineCount"}
       }
     },
     {

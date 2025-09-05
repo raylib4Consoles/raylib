@@ -4,14 +4,14 @@
 *
 *   Example complexity rating: [★★☆☆] 2/4
 *
-*   Example originally created with raylib 5.5, last time updated with raylib 5.5
+*   Example originally created with raylib 5.5, last time updated with raylib 5.6-dev
 *
 *   Example contributed by Hamza RAHAL (@hmz-rhl) and reviewed by Ramon Santamaria (@raysan5)
 *
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2025 Hamza RAHAL (@hmz-rhl)
+*   Copyright (c) 2025-2025 Hamza RAHAL (@hmz-rhl)
 *
 ********************************************************************************************/
 
@@ -128,12 +128,11 @@ int main(void)
 //----------------------------------------------------------------------------------
 // Module Functions Definition
 //----------------------------------------------------------------------------------
-
 // Update clock time
 static void UpdateClock(Clock *clock)
 {
     time_t rawtime;
-    struct tm * timeinfo;
+    struct tm *timeinfo;
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);
@@ -164,7 +163,7 @@ static void DrawClock(Clock clock, Vector2 centerPosition)
 
         DrawText(TextFormat("%i", clock.second.value), centerPosition.x + (clock.second.length - 10)*cosf(clock.second.angle*(float)(PI/180)) - DIGIT_SIZE/2, centerPosition.y + clock.second.length*sinf(clock.second.angle*(float)(PI/180)) - DIGIT_SIZE/2, DIGIT_SIZE, GRAY);
 
-        DrawText(TextFormat("%i", clock.minute.value), clock.minute.origin.x + clock.minute.length*cosf(clock.minute.angle*(float)(PI/180)) - DIGIT_SIZE/2, centerPosition.y + clock.minute.length*sinf(clock.minute.angle*(float)(PI/180)) - DIGIT_SIZE/2, DIGIT_SIZE, RED);
+        DrawText(TextFormat("%i", clock.minute.value), centerPosition.x + clock.minute.length*cosf(clock.minute.angle*(float)(PI/180)) - DIGIT_SIZE/2, centerPosition.y + clock.minute.length*sinf(clock.minute.angle*(float)(PI/180)) - DIGIT_SIZE/2, DIGIT_SIZE, RED);
 
         DrawText(TextFormat("%i", clock.hour.value), centerPosition.x + clock.hour.length*cosf(clock.hour.angle*(float)(PI/180)) - DIGIT_SIZE/2, centerPosition.y + clock.hour.length*sinf(clock.hour.angle*(float)(PI/180)) - DIGIT_SIZE/2, DIGIT_SIZE, GOLD);
     }

@@ -1,6 +1,6 @@
 /*******************************************************************************************
 *
-*   raylib [text] example - unicode emojis emojis
+*   raylib [text] example - unicode emojis
 *
 *   Example complexity rating: [★★★★] 4/4
 *
@@ -23,6 +23,19 @@
 #define SIZEOF(A) (sizeof(A)/sizeof(A[0]))
 #define EMOJI_PER_WIDTH 8
 #define EMOJI_PER_HEIGHT 4
+
+//--------------------------------------------------------------------------------------
+// Global Variables Definition
+//--------------------------------------------------------------------------------------
+// Arrays that holds the random emojis
+struct {
+    int index;      // Index inside `emojiCodepoints`
+    int message;    // Message index
+    Color color;    // Emoji color
+} emoji[EMOJI_PER_WIDTH*EMOJI_PER_HEIGHT] = { 0 };
+
+static int hovered = -1;
+static int selected = -1;
 
 // String containing 180 emoji codepoints separated by a '\0' char
 const char *const emojiCodepoints = "\xF0\x9F\x8C\x80\x00\xF0\x9F\x98\x80\x00\xF0\x9F\x98\x82\x00\xF0\x9F\xA4\xA3\x00\xF0\x9F\x98\x83\x00\xF0\x9F\x98\x86\x00\xF0\x9F\x98\x89\x00"
@@ -133,24 +146,12 @@ struct {
 };
 
 //--------------------------------------------------------------------------------------
-// Module functions declaration
+// Module Functions Declaration
 //--------------------------------------------------------------------------------------
 static void RandomizeEmoji(void);    // Fills the emoji array with random emojis
 
 static void DrawTextBoxed(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint);   // Draw text using font inside rectangle limits
 static void DrawTextBoxedSelectable(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint);    // Draw text using font inside rectangle limits with support for text selection
-
-//--------------------------------------------------------------------------------------
-// Global variables
-//--------------------------------------------------------------------------------------
-// Arrays that holds the random emojis
-struct {
-    int index;      // Index inside `emojiCodepoints`
-    int message;    // Message index
-    Color color;    // Emoji color
-} emoji[EMOJI_PER_WIDTH*EMOJI_PER_HEIGHT] = { 0 };
-
-static int hovered = -1, selected = -1;
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -248,7 +249,7 @@ int main(void)
                 if (sz.x > 300) { sz.y *= sz.x/300; sz.x = 300; }
                 else if (sz.x < 160) sz.x = 160;
 
-                Rectangle msgRect = { selectedPos.x - 38.8f, selectedPos.y, 2 * horizontalPadding + sz.x, 2 * verticalPadding + sz.y };
+                Rectangle msgRect = { selectedPos.x - 38.8f, selectedPos.y, 2*horizontalPadding + sz.x, 2*verticalPadding + sz.y };
                 msgRect.y -= msgRect.height;
 
                 // Coordinates for the chat bubble triangle
@@ -329,7 +330,7 @@ static void RandomizeEmoji(void)
 }
 
 //--------------------------------------------------------------------------------------
-// Module functions definition
+// Module Functions Definition
 //--------------------------------------------------------------------------------------
 
 // Draw text using font inside rectangle limits

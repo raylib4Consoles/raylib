@@ -6,6 +6,7 @@ The examples assume you have already built the `raylib` library in `../src`.
 
 - `make` builds all examples
 - `make [module]` builds all examples for a particular module (e.g `make core`)
+- `make [module]/[name]` builds one examples for a particular module (e.g `make core/core_basic_window`)
 
 ### With Zig
 
@@ -16,9 +17,9 @@ You may find it easier to use than other toolchains, especially when it comes to
 - `zig build [module]` to compile all examples for a module (e.g. `zig build core`)
 - `zig build [example]` to compile _and run_ a particular example (e.g. `zig build core_basic_window`)
 
-## EXAMPLES COLLECTION [TOTAL: 162]
+## EXAMPLES COLLECTION [TOTAL: 160]
 
-### category: core [37]
+### category: core [35]
 
 Examples using raylib[core](../src/rcore.c) platform functionality like window creation, inputs, drawing modes and system functionality.
 
@@ -31,6 +32,7 @@ Examples using raylib[core](../src/rcore.c) platform functionality like window c
 | [core_input_gamepad](core/core_input_gamepad.c) | <img src="core/core_input_gamepad.png" alt="core_input_gamepad" width="80"> | ⭐☆☆☆ | 1.1 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_input_multitouch](core/core_input_multitouch.c) | <img src="core/core_input_multitouch.png" alt="core_input_multitouch" width="80"> | ⭐☆☆☆ | 2.1 | 2.5 | [Berni](https://github.com/Berni8k) |
 | [core_input_gestures](core/core_input_gestures.c) | <img src="core/core_input_gestures.png" alt="core_input_gestures" width="80"> | ⭐⭐☆☆ | 1.4 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
+| [core_input_gestures_testbed](core/core_input_gestures_testbed.c) | <img src="core/core_input_gestures_testbed.png" alt="core_input_gestures_testbed" width="80"> | ⭐⭐⭐☆ | 4.6 | 5.6 | [ubkp](https://github.com/ubkp) |
 | [core_input_virtual_controls](core/core_input_virtual_controls.c) | <img src="core/core_input_virtual_controls.png" alt="core_input_virtual_controls" width="80"> | ⭐⭐☆☆ | 5.0 | 5.0 | [oblerion](https://github.com/oblerion) |
 | [core_2d_camera](core/core_2d_camera.c) | <img src="core/core_2d_camera.png" alt="core_2d_camera" width="80"> | ⭐⭐☆☆ | 1.5 | 3.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_2d_camera_mouse_zoom](core/core_2d_camera_mouse_zoom.c) | <img src="core/core_2d_camera_mouse_zoom.png" alt="core_2d_camera_mouse_zoom" width="80"> | ⭐⭐☆☆ | 4.2 | 4.2 | [Jeffery Myers](https://github.com/JeffM2501) |
@@ -43,24 +45,21 @@ Examples using raylib[core](../src/rcore.c) platform functionality like window c
 | [core_3d_camera_fps](core/core_3d_camera_fps.c) | <img src="core/core_3d_camera_fps.png" alt="core_3d_camera_fps" width="80"> | ⭐⭐⭐☆ | 5.5 | 5.5 | [Agnis Aldins](https://github.com/nezvers) |
 | [core_3d_picking](core/core_3d_picking.c) | <img src="core/core_3d_picking.png" alt="core_3d_picking" width="80"> | ⭐⭐☆☆ | 1.3 | 4.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_world_screen](core/core_world_screen.c) | <img src="core/core_world_screen.png" alt="core_world_screen" width="80"> | ⭐⭐☆☆ | 1.3 | 1.4 | [Ramon Santamaria](https://github.com/raysan5) |
-| [core_custom_logging](core/core_custom_logging.c) | <img src="core/core_custom_logging.png" alt="core_custom_logging" width="80"> | ⭐⭐⭐☆ | 2.5 | 2.5 | [Pablo Marcos Oltra](https://github.com/pamarcos) |
 | [core_window_flags](core/core_window_flags.c) | <img src="core/core_window_flags.png" alt="core_window_flags" width="80"> | ⭐⭐⭐☆ | 3.5 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_window_letterbox](core/core_window_letterbox.c) | <img src="core/core_window_letterbox.png" alt="core_window_letterbox" width="80"> | ⭐⭐☆☆ | 2.5 | 4.0 | [Anata](https://github.com/anatagawa) |
 | [core_window_should_close](core/core_window_should_close.c) | <img src="core/core_window_should_close.png" alt="core_window_should_close" width="80"> | ⭐☆☆☆ | 4.2 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
+| [core_custom_logging](core/core_custom_logging.c) | <img src="core/core_custom_logging.png" alt="core_custom_logging" width="80"> | ⭐⭐⭐☆ | 2.5 | 2.5 | [Pablo Marcos Oltra](https://github.com/pamarcos) |
 | [core_drop_files](core/core_drop_files.c) | <img src="core/core_drop_files.png" alt="core_drop_files" width="80"> | ⭐⭐☆☆ | 1.3 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_random_values](core/core_random_values.c) | <img src="core/core_random_values.png" alt="core_random_values" width="80"> | ⭐☆☆☆ | 1.1 | 1.1 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_storage_values](core/core_storage_values.c) | <img src="core/core_storage_values.png" alt="core_storage_values" width="80"> | ⭐⭐☆☆ | 1.4 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_vr_simulator](core/core_vr_simulator.c) | <img src="core/core_vr_simulator.png" alt="core_vr_simulator" width="80"> | ⭐⭐⭐☆ | 2.5 | 4.0 | [Ramon Santamaria](https://github.com/raysan5) |
-| [core_loading_thread](core/core_loading_thread.c) | <img src="core/core_loading_thread.png" alt="core_loading_thread" width="80"> | ⭐⭐⭐☆ | 2.5 | 3.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_scissor_test](core/core_scissor_test.c) | <img src="core/core_scissor_test.png" alt="core_scissor_test" width="80"> | ⭐☆☆☆ | 2.5 | 3.0 | [Chris Dill](https://github.com/MysteriousSpace) |
 | [core_basic_screen_manager](core/core_basic_screen_manager.c) | <img src="core/core_basic_screen_manager.png" alt="core_basic_screen_manager" width="80"> | ⭐☆☆☆ | 4.0 | 4.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_custom_frame_control](core/core_custom_frame_control.c) | <img src="core/core_custom_frame_control.png" alt="core_custom_frame_control" width="80"> | ⭐⭐⭐⭐️ | 4.0 | 4.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [core_smooth_pixelperfect](core/core_smooth_pixelperfect.c) | <img src="core/core_smooth_pixelperfect.png" alt="core_smooth_pixelperfect" width="80"> | ⭐⭐⭐☆ | 3.7 | 4.0 | [Giancamillo Alessandroni](https://github.com/NotManyIdeasDev) |
 | [core_random_sequence](core/core_random_sequence.c) | <img src="core/core_random_sequence.png" alt="core_random_sequence" width="80"> | ⭐☆☆☆ | 5.0 | 5.0 | [Dalton Overmyer](https://github.com/REDl3east) |
-| [core_basic_window_web](core/core_basic_window_web.c) | <img src="core/core_basic_window_web.png" alt="core_basic_window_web" width="80"> | ⭐☆☆☆ | 1.3 | 1.3 | [Ramon Santamaria](https://github.com/raysan5) |
-| [core_input_gestures_web](core/core_input_gestures_web.c) | <img src="core/core_input_gestures_web.png" alt="core_input_gestures_web" width="80"> | ⭐⭐☆☆ | 4.6 | 4.6 | [ubkp](https://github.com/ubkp) |
 | [core_automation_events](core/core_automation_events.c) | <img src="core/core_automation_events.png" alt="core_automation_events" width="80"> | ⭐⭐⭐☆ | 5.0 | 5.0 | [Ramon Santamaria](https://github.com/raysan5) |
-| [core_high_dpi](core/core_high_dpi.c) | <img src="core/core_high_dpi.png" alt="core_high_dpi" width="80"> | ⭐☆☆☆ | 5.0 | 5.0 | [Jonathan Marler](https://github.com/marler8997) |
+| [core_high_dpi](core/core_high_dpi.c) | <img src="core/core_high_dpi.png" alt="core_high_dpi" width="80"> | ⭐⭐☆☆ | 5.0 | 5.5 | [Jonathan Marler](https://github.com/marler8997) |
 
 ### category: shapes [20]
 
@@ -86,7 +85,7 @@ Examples using raylib shapes drawing functionality, provided by raylib [shapes](
 | [shapes_top_down_lights](shapes/shapes_top_down_lights.c) | <img src="shapes/shapes_top_down_lights.png" alt="shapes_top_down_lights" width="80"> | ⭐⭐⭐⭐️ | 4.2 | 4.2 | [Jeffery Myers](https://github.com/JeffM2501) |
 | [shapes_rectangle_advanced](shapes/shapes_rectangle_advanced.c) | <img src="shapes/shapes_rectangle_advanced.png" alt="shapes_rectangle_advanced" width="80"> | ⭐⭐⭐⭐️ | 5.5 | 5.5 | [Everton Jr.](https://github.com/evertonse) |
 | [shapes_splines_drawing](shapes/shapes_splines_drawing.c) | <img src="shapes/shapes_splines_drawing.png" alt="shapes_splines_drawing" width="80"> | ⭐⭐⭐☆ | 5.0 | 5.0 | [Ramon Santamaria](https://github.com/raysan5) |
-| [shapes_digital_clock](shapes/shapes_digital_clock.c) | <img src="shapes/shapes_digital_clock.png" alt="shapes_digital_clock" width="80"> | ⭐⭐☆☆ | 5.5 | 5.5 | [Hamza RAHAL](https://github.com/rhmz-rhl) |
+| [shapes_digital_clock](shapes/shapes_digital_clock.c) | <img src="shapes/shapes_digital_clock.png" alt="shapes_digital_clock" width="80"> | ⭐⭐☆☆ | 5.5 | 5.6 | [Hamza RAHAL](https://github.com/hmz-rhl) |
 | [shapes_double_pendulum](shapes/shapes_double_pendulum.c) | <img src="shapes/shapes_double_pendulum.png" alt="shapes_double_pendulum" width="80"> | ⭐⭐☆☆ | 5.5 | 5.5 | [JoeCheong](https://github.com/Joecheong2006) |
 
 ### category: textures [26]
@@ -113,8 +112,8 @@ Examples using raylib textures functionality, including image/textures loading/g
 | [textures_bunnymark](textures/textures_bunnymark.c) | <img src="textures/textures_bunnymark.png" alt="textures_bunnymark" width="80"> | ⭐⭐⭐☆ | 1.6 | 2.5 | [Ramon Santamaria](https://github.com/raysan5) |
 | [textures_mouse_painting](textures/textures_mouse_painting.c) | <img src="textures/textures_mouse_painting.png" alt="textures_mouse_painting" width="80"> | ⭐⭐⭐☆ | 3.0 | 3.0 | [Chris Dill](https://github.com/MysteriousSpace) |
 | [textures_blend_modes](textures/textures_blend_modes.c) | <img src="textures/textures_blend_modes.png" alt="textures_blend_modes" width="80"> | ⭐☆☆☆ | 3.5 | 3.5 | [Karlo Licudine](https://github.com/accidentalrebel) |
-| [textures_draw_tiled](textures/textures_draw_tiled.c) | <img src="textures/textures_draw_tiled.png" alt="textures_draw_tiled" width="80"> | ⭐⭐⭐☆ | 3.0 | 4.2 | [Vlad Adrian](https://github.com/demizdor) |
-| [textures_polygon](textures/textures_polygon.c) | <img src="textures/textures_polygon.png" alt="textures_polygon" width="80"> | ⭐☆☆☆ | 3.7 | 3.7 | [Chris Camacho](https://github.com/chriscamacho) |
+| [textures_tiled_drawing](textures/textures_tiled_drawing.c) | <img src="textures/textures_tiled_drawing.png" alt="textures_tiled_drawing" width="80"> | ⭐⭐⭐☆ | 3.0 | 4.2 | [Vlad Adrian](https://github.com/demizdor) |
+| [textures_polygon_drawing](textures/textures_polygon_drawing.c) | <img src="textures/textures_polygon_drawing.png" alt="textures_polygon_drawing" width="80"> | ⭐☆☆☆ | 3.7 | 3.7 | [Chris Camacho](https://github.com/chriscamacho) |
 | [textures_fog_of_war](textures/textures_fog_of_war.c) | <img src="textures/textures_fog_of_war.png" alt="textures_fog_of_war" width="80"> | ⭐⭐⭐☆ | 4.2 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
 | [textures_gif_player](textures/textures_gif_player.c) | <img src="textures/textures_gif_player.png" alt="textures_gif_player" width="80"> | ⭐⭐⭐☆ | 4.2 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
 | [textures_image_kernel](textures/textures_image_kernel.c) | <img src="textures/textures_image_kernel.png" alt="textures_image_kernel" width="80"> | ⭐⭐⭐⭐️ | 1.3 | 1.3 | [Karim Salem](https://github.com/kimo-s) |
@@ -128,7 +127,7 @@ Examples using raylib text functionality, including sprite fonts loading/generat
 
 |  example  | image  | difficulty<br>level | version<br>created | last version<br>updated | original<br>developer |
 |-----------|--------|:-------------------:|:------------------:|:-----------------------:|:----------------------|
-| [text_raylib_fonts](text/text_raylib_fonts.c) | <img src="text/text_raylib_fonts.png" alt="text_raylib_fonts" width="80"> | ⭐☆☆☆ | 1.7 | 3.7 | [Ramon Santamaria](https://github.com/raysan5) |
+| [text_sprite_fonts](text/text_sprite_fonts.c) | <img src="text/text_sprite_fonts.png" alt="text_sprite_fonts" width="80"> | ⭐☆☆☆ | 1.7 | 3.7 | [Ramon Santamaria](https://github.com/raysan5) |
 | [text_font_spritefont](text/text_font_spritefont.c) | <img src="text/text_font_spritefont.png" alt="text_font_spritefont" width="80"> | ⭐☆☆☆ | 1.0 | 1.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [text_font_filters](text/text_font_filters.c) | <img src="text/text_font_filters.png" alt="text_font_filters" width="80"> | ⭐⭐☆☆ | 1.3 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
 | [text_font_loading](text/text_font_loading.c) | <img src="text/text_font_loading.png" alt="text_font_loading" width="80"> | ⭐☆☆☆ | 1.4 | 3.0 | [Ramon Santamaria](https://github.com/raysan5) |
@@ -137,10 +136,10 @@ Examples using raylib text functionality, including sprite fonts loading/generat
 | [text_input_box](text/text_input_box.c) | <img src="text/text_input_box.png" alt="text_input_box" width="80"> | ⭐⭐☆☆ | 1.7 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
 | [text_writing_anim](text/text_writing_anim.c) | <img src="text/text_writing_anim.png" alt="text_writing_anim" width="80"> | ⭐⭐☆☆ | 1.4 | 1.4 | [Ramon Santamaria](https://github.com/raysan5) |
 | [text_rectangle_bounds](text/text_rectangle_bounds.c) | <img src="text/text_rectangle_bounds.png" alt="text_rectangle_bounds" width="80"> | ⭐⭐⭐⭐️ | 2.5 | 4.0 | [Vlad Adrian](https://github.com/demizdor) |
-| [text_unicode](text/text_unicode.c) | <img src="text/text_unicode.png" alt="text_unicode" width="80"> | ⭐⭐⭐⭐️ | 2.5 | 4.0 | [Vlad Adrian](https://github.com/demizdor) |
-| [text_draw_3d](text/text_draw_3d.c) | <img src="text/text_draw_3d.png" alt="text_draw_3d" width="80"> | ⭐⭐⭐⭐️ | 3.5 | 4.0 | [Vlad Adrian](https://github.com/demizdor) |
+| [text_unicode_emojis](text/text_unicode_emojis.c) | <img src="text/text_unicode_emojis.png" alt="text_unicode_emojis" width="80"> | ⭐⭐⭐⭐️ | 2.5 | 4.0 | [Vlad Adrian](https://github.com/demizdor) |
+| [text_unicode_ranges](text/text_unicode_ranges.c) | <img src="text/text_unicode_ranges.png" alt="text_unicode_ranges" width="80"> | ⭐⭐⭐⭐️ | 5.5 | 5.6 | [Vlad Adrian](https://github.com/demizdor) |
+| [text_3d_drawing](text/text_3d_drawing.c) | <img src="text/text_3d_drawing.png" alt="text_3d_drawing" width="80"> | ⭐⭐⭐⭐️ | 3.5 | 4.0 | [Vlad Adrian](https://github.com/demizdor) |
 | [text_codepoints_loading](text/text_codepoints_loading.c) | <img src="text/text_codepoints_loading.png" alt="text_codepoints_loading" width="80"> | ⭐⭐⭐☆ | 4.2 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
-| [text_unicode_ranges](text/text_unicode_ranges.c) | <img src="text/text_unicode_ranges.png" alt="text_unicode_ranges" width="80"> | ⭐⭐⭐⭐️ | 2.5 | 4.0 | [Vlad Adrian](https://github.com/demizdor) |
 
 ### category: models [23]
 
@@ -149,7 +148,7 @@ Examples using raylib models functionality, including models loading/generation 
 |  example  | image  | difficulty<br>level | version<br>created | last version<br>updated | original<br>developer |
 |-----------|--------|:-------------------:|:------------------:|:-----------------------:|:----------------------|
 | [models_animation](models/models_animation.c) | <img src="models/models_animation.png" alt="models_animation" width="80"> | ⭐⭐☆☆ | 2.5 | 3.5 | [Culacant](https://github.com/culacant) |
-| [models_billboard](models/models_billboard.c) | <img src="models/models_billboard.png" alt="models_billboard" width="80"> | ⭐⭐⭐☆ | 1.3 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
+| [models_billboard_rendering](models/models_billboard_rendering.c) | <img src="models/models_billboard_rendering.png" alt="models_billboard_rendering" width="80"> | ⭐⭐⭐☆ | 1.3 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
 | [models_box_collisions](models/models_box_collisions.c) | <img src="models/models_box_collisions.png" alt="models_box_collisions" width="80"> | ⭐☆☆☆ | 1.3 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
 | [models_cubicmap](models/models_cubicmap.c) | <img src="models/models_cubicmap.png" alt="models_cubicmap" width="80"> | ⭐⭐☆☆ | 1.8 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
 | [models_first_person_maze](models/models_first_person_maze.c) | <img src="models/models_first_person_maze.png" alt="models_first_person_maze" width="80"> | ⭐⭐☆☆ | 2.5 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
@@ -159,14 +158,14 @@ Examples using raylib models functionality, including models loading/generation 
 | [models_loading](models/models_loading.c) | <img src="models/models_loading.png" alt="models_loading" width="80"> | ⭐☆☆☆ | 2.0 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
 | [models_loading_gltf](models/models_loading_gltf.c) | <img src="models/models_loading_gltf.png" alt="models_loading_gltf" width="80"> | ⭐☆☆☆ | 3.7 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
 | [models_loading_vox](models/models_loading_vox.c) | <img src="models/models_loading_vox.png" alt="models_loading_vox" width="80"> | ⭐☆☆☆ | 4.0 | 4.0 | [Johann Nadalutti](https://github.com/procfxgen) |
-| [models_loading_m3d](models/models_loading_m3d.c) | <img src="models/models_loading_m3d.png" alt="models_loading_m3d" width="80"> | ⭐⭐☆☆ | 4.5 | 4.5 | [bzt](https://github.com/model3d) |
+| [models_loading_m3d](models/models_loading_m3d.c) | <img src="models/models_loading_m3d.png" alt="models_loading_m3d" width="80"> | ⭐⭐☆☆ | 4.5 | 4.5 | [bzt](https://github.com/bztsrc) |
 | [models_orthographic_projection](models/models_orthographic_projection.c) | <img src="models/models_orthographic_projection.png" alt="models_orthographic_projection" width="80"> | ⭐☆☆☆ | 2.0 | 3.7 | [Max Danielsson](https://github.com/autious) |
 | [models_point_rendering](models/models_point_rendering.c) | <img src="models/models_point_rendering.png" alt="models_point_rendering" width="80"> | ⭐⭐⭐☆ | 5.0 | 5.0 | [Reese Gallagher](https://github.com/satchelfrost) |
 | [models_rlgl_solar_system](models/models_rlgl_solar_system.c) | <img src="models/models_rlgl_solar_system.png" alt="models_rlgl_solar_system" width="80"> | ⭐⭐⭐⭐️ | 2.5 | 4.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [models_yaw_pitch_roll](models/models_yaw_pitch_roll.c) | <img src="models/models_yaw_pitch_roll.png" alt="models_yaw_pitch_roll" width="80"> | ⭐⭐☆☆ | 1.8 | 4.0 | [Berni](https://github.com/Berni8k) |
 | [models_waving_cubes](models/models_waving_cubes.c) | <img src="models/models_waving_cubes.png" alt="models_waving_cubes" width="80"> | ⭐⭐⭐☆ | 2.5 | 3.7 | [Codecat](https://github.com/codecat) |
 | [models_heightmap](models/models_heightmap.c) | <img src="models/models_heightmap.png" alt="models_heightmap" width="80"> | ⭐☆☆☆ | 1.8 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
-| [models_skybox](models/models_skybox.c) | <img src="models/models_skybox.png" alt="models_skybox" width="80"> | ⭐⭐☆☆ | 1.8 | 4.0 | [Ramon Santamaria](https://github.com/raysan5) |
+| [models_skybox_rendering](models/models_skybox_rendering.c) | <img src="models/models_skybox_rendering.png" alt="models_skybox_rendering" width="80"> | ⭐⭐☆☆ | 1.8 | 4.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [models_draw_cube_texture](models/models_draw_cube_texture.c) | <img src="models/models_draw_cube_texture.png" alt="models_draw_cube_texture" width="80"> | ⭐⭐☆☆ | 4.5 | 4.5 | [Ramon Santamaria](https://github.com/raysan5) |
 | [models_gpu_skinning](models/models_gpu_skinning.c) | <img src="models/models_gpu_skinning.png" alt="models_gpu_skinning" width="80"> | ⭐⭐⭐☆ | 4.5 | 4.5 | [Daniel Holden](https://github.com/orangeduck) |
 | [models_bone_socket](models/models_bone_socket.c) | <img src="models/models_bone_socket.png" alt="models_bone_socket" width="80"> | ⭐⭐⭐⭐️ | 4.5 | 4.5 | [iP](https://github.com/ipzaur) |
@@ -185,12 +184,12 @@ Examples using raylib shaders functionality, including shaders loading, paramete
 | [shaders_postprocessing](shaders/shaders_postprocessing.c) | <img src="shaders/shaders_postprocessing.png" alt="shaders_postprocessing" width="80"> | ⭐⭐⭐☆ | 1.3 | 4.0 | [Ramon Santamaria](https://github.com/raysan5) |
 | [shaders_palette_switch](shaders/shaders_palette_switch.c) | <img src="shaders/shaders_palette_switch.png" alt="shaders_palette_switch" width="80"> | ⭐⭐⭐☆ | 2.5 | 3.7 | [Marco Lizza](https://github.com/MarcoLizza) |
 | [shaders_raymarching](shaders/shaders_raymarching.c) | <img src="shaders/shaders_raymarching.png" alt="shaders_raymarching" width="80"> | ⭐⭐⭐⭐️ | 2.0 | 4.2 | [Ramon Santamaria](https://github.com/raysan5) |
-| [shaders_texture_drawing](shaders/shaders_texture_drawing.c) | <img src="shaders/shaders_texture_drawing.png" alt="shaders_texture_drawing" width="80"> | ⭐⭐☆☆ | 2.0 | 3.7 | [Michał Ciesielski](https://github.com/ciessielski) |
-| [shaders_texture_outline](shaders/shaders_texture_outline.c) | <img src="shaders/shaders_texture_outline.png" alt="shaders_texture_outline" width="80"> | ⭐⭐⭐☆ | 4.0 | 4.0 | [Samuel Skiff](https://github.com/GoldenThumbs) |
+| [shaders_texture_rendering](shaders/shaders_texture_rendering.c) | <img src="shaders/shaders_texture_rendering.png" alt="shaders_texture_rendering" width="80"> | ⭐⭐☆☆ | 2.0 | 3.7 | [Michał Ciesielski](https://github.com/ciessielski) |
+| [shaders_texture_outline](shaders/shaders_texture_outline.c) | <img src="shaders/shaders_texture_outline.png" alt="shaders_texture_outline" width="80"> | ⭐⭐⭐☆ | 4.0 | 4.0 | [Serenity Skiff](https://github.com/GoldenThumbs) |
 | [shaders_texture_waves](shaders/shaders_texture_waves.c) | <img src="shaders/shaders_texture_waves.png" alt="shaders_texture_waves" width="80"> | ⭐⭐☆☆ | 2.5 | 3.7 | [Anata](https://github.com/anatagawa) |
 | [shaders_julia_set](shaders/shaders_julia_set.c) | <img src="shaders/shaders_julia_set.png" alt="shaders_julia_set" width="80"> | ⭐⭐⭐☆ | 2.5 | 4.0 | [Josh Colclough](https://github.com/joshcol9232) |
 | [shaders_eratosthenes](shaders/shaders_eratosthenes.c) | <img src="shaders/shaders_eratosthenes.png" alt="shaders_eratosthenes" width="80"> | ⭐⭐⭐☆ | 2.5 | 4.0 | [ProfJski](https://github.com/ProfJski) |
-| [shaders_fog](shaders/shaders_fog.c) | <img src="shaders/shaders_fog.png" alt="shaders_fog" width="80"> | ⭐⭐⭐☆ | 2.5 | 3.7 | [Chris Camacho](https://github.com/chriscamacho) |
+| [shaders_fog_rendering](shaders/shaders_fog_rendering.c) | <img src="shaders/shaders_fog_rendering.png" alt="shaders_fog_rendering" width="80"> | ⭐⭐⭐☆ | 2.5 | 3.7 | [Chris Camacho](https://github.com/chriscamacho) |
 | [shaders_simple_mask](shaders/shaders_simple_mask.c) | <img src="shaders/shaders_simple_mask.png" alt="shaders_simple_mask" width="80"> | ⭐⭐☆☆ | 2.5 | 3.7 | [Chris Camacho](https://github.com/chriscamacho) |
 | [shaders_hot_reloading](shaders/shaders_hot_reloading.c) | <img src="shaders/shaders_hot_reloading.png" alt="shaders_hot_reloading" width="80"> | ⭐⭐⭐☆ | 3.0 | 3.5 | [Ramon Santamaria](https://github.com/raysan5) |
 | [shaders_mesh_instancing](shaders/shaders_mesh_instancing.c) | <img src="shaders/shaders_mesh_instancing.png" alt="shaders_mesh_instancing" width="80"> | ⭐⭐⭐⭐️ | 3.7 | 4.2 | [seanpringle](https://github.com/seanpringle) |
