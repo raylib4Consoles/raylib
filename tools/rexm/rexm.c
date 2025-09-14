@@ -1367,7 +1367,6 @@ int main(int argc, char *argv[])
 
             UnloadExamplesData(exCollection);
             //------------------------------------------------------------------------------------------------
-
         } break;
         default:    // Help
         {
