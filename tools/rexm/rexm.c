@@ -1821,11 +1821,8 @@ static int FileCopy(const char *srcPath, const char *dstPath)
     if (!DirectoryExists(GetDirectoryPath(dstPath)))
         result = MakeDirectory(GetDirectoryPath(dstPath));
 
-    if (result == 0) // Directory created successfully (or already exists)
-    {
-        if ((srcFileData != NULL) && (srcDataSize > 0))
-            result = SaveFileData(dstPath, srcFileData, srcDataSize);
-    }
+    if ((srcFileData != NULL) && (srcDataSize > 0))
+        result = SaveFileData(dstPath, srcFileData, srcDataSize);
 
     UnloadFileData(srcFileData);
 
