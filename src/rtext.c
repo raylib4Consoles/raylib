@@ -54,7 +54,9 @@
 **********************************************************************************************/
 
 #include "raylib.h"         // Declares module functions
-
+#if defined(PLATFORM_PLAYSTATION2)
+#include <ps2s/core.h>
+#endif
 // Check if config flags have been externally provided on compilation line
 #if !defined(EXTERNAL_CONFIG_FLAGS)
     #include "config.h"     // Defines module configuration flags
@@ -239,7 +241,17 @@ extern void LoadFontDefault(void)
 
     // Re-construct image from defaultFontData and generate OpenGL texture
     //----------------------------------------------------------------------
-#if defined(PLATFORM_DREAMCAST) || defined(PLATFORM_NINTENDO64)
+#if defined(PLATFORM_DREAMCAST) || defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PLAYSTATION2)
+    /*#if defined(PLATFORM_PLAYSTATION2)
+        
+            Image imFont = {
+
+            .data = memalign(16, 128*128*4),
+            .height = 128,
+            .mipmaps = 1,
+            .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+             };
+    #else*/
     Image imFont = {
         .data = RL_CALLOC(128*128, 4),  // 4 bytes per pixel (rgb + alpha) there are some issues with different format in Dreamcast so to avoid problems for text by now we will use this
         .width = 128,
@@ -247,7 +259,7 @@ extern void LoadFontDefault(void)
         .mipmaps = 1,
         .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
     };
-
+    //#endif
     // Fill image.data with defaultFontData (convert from bit to pixel!)
     for (int i = 0, counter = 0; i < imFont.width*imFont.height; i += 32)
     {
@@ -261,7 +273,7 @@ extern void LoadFontDefault(void)
             }
             else
             {
-                #if defined(PLATFORM_DREAMCAST)
+                #if defined(PLATFORM_DREAMCAST) || defined(PLATFORM_PLAYSTATION2)
                 ((unsigned int *)imFont.data)[i + j] = 0x000000ff;
                 #endif
                 #if defined(PLATFORM_NINTENDO64)

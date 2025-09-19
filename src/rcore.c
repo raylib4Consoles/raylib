@@ -30,6 +30,8 @@
 *           - Sega Dreamcast (SH4)
 *       > PLATFORM_NINTENDO64:
 *           - Nintendo 64 (MIPS4300)
+*       > PLATFORM_PLAYSTATION2:
+*           - PlayStation 2
 *       > PLATFORM_PSP:
 *           - PlayStation Psp
 *       > PLATFORM_VITA:
@@ -582,6 +584,8 @@ const char *TextFormat(const char *text, ...); // Formatting of text with variab
     #include "platforms/rcore_dreamcast.c"
 #elif defined(PLATFORM_NINTENDO64)
     #include "platforms/rcore_nintendo64.c"
+#elif defined(PLATFORM_PLAYSTATION2)
+    #include "platforms/rcore_playstation2.c"
 #elif defined(PLATFORM_PSP)
     #include "platforms/rcore_psp.c"
 #elif defined(PLATFORM_VITA)
@@ -646,7 +650,7 @@ const char *TextFormat(const char *text, ...); // Formatting of text with variab
 // Initialize window and OpenGL context
 void InitWindow(int width, int height, const char *title)
 {
-#if defined(PLATFORM_PSP) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+#if defined(PLATFORM_PLAYSTATION2) || defined(PLATFORM_PSP) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
     SetTraceLogCallback(CustomLog);
 #endif  
     TRACELOG(LOG_INFO, "Initializing raylib %s", RAYLIB_VERSION);
@@ -790,7 +794,7 @@ void InitWindow(int width, int height, const char *title)
 #if defined(PLATFORM_NINTENDO64)
     SwapScreenBuffer();
 #endif
-#if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+#if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PLAYSTATION2) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
     TRACELOG(LOG_INFO, "PLATFORM: Application initialized successfully");
 #else
     TRACELOG(LOG_INFO, "SYSTEM: Working Directory: %s", GetWorkingDirectory());
@@ -954,6 +958,9 @@ void BeginDrawing(void)
 {
     // WARNING: Previously to BeginDrawing() other render textures drawing could happen,
     // consequently the measure for update vs draw is not accurate (only the total frame time is accurate)
+#if defined(PLATFORM_PLAYSTATION2)
+    pglBeginGeometry();
+#endif
 #if defined(PLATFORM_NINTENDO64)
     platform.disp = display_get();
 
@@ -2182,7 +2189,7 @@ bool IsFileExtension(const char *fileName, const char *ext)
 bool DirectoryExists(const char *dirPath)
 {
     bool result = false;
-#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     DIR *dir = opendir(dirPath);
 
     if (dir != NULL)
@@ -2375,7 +2382,7 @@ const char *GetWorkingDirectory(void)
 {
     static char currentDir[MAX_FILEPATH_LENGTH] = { 0 };
     memset(currentDir, 0, MAX_FILEPATH_LENGTH);
-#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     char *path = GETCWD(currentDir, MAX_FILEPATH_LENGTH - 1);
 #else
     char *path = ".";
@@ -2489,7 +2496,7 @@ FilePathList LoadDirectoryFiles(const char *dirPath)
 {
     FilePathList files = { 0 };
     unsigned int fileCounter = 0;
-#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     struct dirent *entity;
     DIR *dir = opendir(dirPath);
 
@@ -2590,7 +2597,7 @@ int MakeDirectory(const char *dirPath)
 // Change working directory, returns true on success
 bool ChangeDirectory(const char *dir)
 {
-#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     bool result = CHDIR(dir);
 
     if (result != 0) TRACELOG(LOG_WARNING, "SYSTEM: Failed to change to directory: %s", dir);
@@ -2819,6 +2826,7 @@ unsigned char *DecodeDataBase64(const char *text, int *outputSize)
     // Base64 decode table
     // NOTE: Following ASCII order [0..255] assigning the expected sixtet value to
     // every character in the corresponding ASCII position
+#if !defined(PLATFORM_PLAYSTATION2)
     static const unsigned char base64DecodeTable[256] = {
         ['A'] =  0, ['B'] =  1, ['C'] =  2, ['D'] =  3, ['E'] =  4, ['F'] =  5, ['G'] =  6, ['H'] =  7,
         ['I'] =  8, ['J'] =  9, ['K'] = 10, ['L'] = 11, ['M'] = 12, ['N'] = 13, ['O'] = 14, ['P'] = 15,
@@ -2829,7 +2837,19 @@ unsigned char *DecodeDataBase64(const char *text, int *outputSize)
         ['0'] = 52, ['1'] = 53, ['2'] = 54, ['3'] = 55, ['4'] = 56, ['5'] = 57, ['6'] = 58, ['7'] = 59,
         ['8'] = 60, ['9'] = 61, ['+'] = 62, ['/'] = 63
     };
+#else
+    static  unsigned char base64DecodeTable[256];
 
+base64DecodeTable['A'] =  0, base64DecodeTable['B'] =  1, base64DecodeTable['C'] =  2, base64DecodeTable['D'] =  3, base64DecodeTable['E'] =  4, base64DecodeTable['F'] =  5, base64DecodeTable['G'] =  6, base64DecodeTable['H'] =  7,
+        base64DecodeTable['I'] =  8, base64DecodeTable['J'] =  9, base64DecodeTable['K'] = 10, base64DecodeTable['L'] = 11, base64DecodeTable['M'] = 12, base64DecodeTable['N'] = 13, base64DecodeTable['O'] = 14, base64DecodeTable['P'] = 15,
+        base64DecodeTable['Q'] = 16, base64DecodeTable['R'] = 17, base64DecodeTable['S'] = 18, base64DecodeTable['T'] = 19, base64DecodeTable['U'] = 20, base64DecodeTable['V'] = 21, base64DecodeTable['W'] = 22, base64DecodeTable['X'] = 23, base64DecodeTable['Y'] = 24, base64DecodeTable['Z'] = 25,
+        base64DecodeTable['a'] = 26, base64DecodeTable['b'] = 27, base64DecodeTable['c'] = 28, base64DecodeTable['d'] = 29, base64DecodeTable['e'] = 30, base64DecodeTable['f'] = 31, base64DecodeTable['g'] = 32, base64DecodeTable['h'] = 33,
+        base64DecodeTable['i'] = 34, base64DecodeTable['j'] = 35, base64DecodeTable['k'] = 36, base64DecodeTable['l'] = 37, base64DecodeTable['m'] = 38, base64DecodeTable['n'] = 39, base64DecodeTable['o'] = 40, base64DecodeTable['p'] = 41,
+        base64DecodeTable['q'] = 42, base64DecodeTable['r'] = 43, base64DecodeTable['s'] = 44, base64DecodeTable['t'] = 45, base64DecodeTable['u'] = 46, base64DecodeTable['v'] = 47, base64DecodeTable['w'] = 48, base64DecodeTable['x'] = 49, base64DecodeTable['y'] = 50, base64DecodeTable['z'] = 51,
+        base64DecodeTable['0'] = 52, base64DecodeTable['1'] = 53, base64DecodeTable['2'] = 54, base64DecodeTable['3'] = 55, base64DecodeTable['4'] = 56, base64DecodeTable['5'] = 57, base64DecodeTable['6'] = 58, base64DecodeTable['7'] = 59,
+        base64DecodeTable['8'] = 60, base64DecodeTable['9'] = 61, base64DecodeTable['+'] = 62, base64DecodeTable['/'] = 63;
+
+#endif
     // Compute expected size and padding
     int dataSize = (int)strlen(text); // WARNING: Expecting NULL terminated strings!
     int ending = dataSize - 1;
@@ -3823,6 +3843,9 @@ void InitTimer(void)
     CORE.Time.base = get_ticks_us();
     enable_interrupts();
 #endif
+#if defined(PLATFORM_PLAYSTATION2)
+    CORE.Time.base=clock();
+#endif
 #if defined(PLATFORM_VITA)
     CORE.Time.base=sceKernelGetProcessTimeWide();
 #endif
@@ -3850,7 +3873,7 @@ void SetupViewport(int width, int height)
 
     // Set orthographic projection to current framebuffer size
     // NOTE: Configured top-left corner as (0, 0)
-#if defined(PLATFORM_DREAMCAST) || defined(PLATFORM_NINTENDO64)
+#if defined(PLATFORM_DREAMCAST) || defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PLAYSTATION2)
     rlOrtho(0, CORE.Window.render.width, CORE.Window.render.height, 0, -1.0f, 1.0f);
 #else
     rlOrtho(0, CORE.Window.render.width, CORE.Window.render.height, 0, 0.0f, 1.0f);
@@ -3944,7 +3967,7 @@ static void ScanDirectoryFiles(const char *basePath, FilePathList *files, const 
 {
     static char path[MAX_FILEPATH_LENGTH] = { 0 };
     memset(path, 0, MAX_FILEPATH_LENGTH);
-#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     struct dirent *dp = NULL;
     DIR *dir = opendir(basePath);
 
@@ -4004,7 +4027,7 @@ static void ScanDirectoryFilesRecursively(const char *basePath, FilePathList *fi
     // WARNING: Path can not be static or it will be reused between recursive function calls!
     char path[MAX_FILEPATH_LENGTH] = { 0 };
     memset(path, 0, MAX_FILEPATH_LENGTH);
-#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     struct dirent *dp = NULL;
     DIR *dir = opendir(basePath);
 

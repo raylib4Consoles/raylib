@@ -4350,7 +4350,7 @@ static Model LoadOBJ(const char *fileName)
     char currentDir[1024] = { 0 };
     strcpy(currentDir, GetWorkingDirectory()); // Save current working directory
     const char* workingDir = GetDirectoryPath(fileName); // Switch to OBJ directory for material path correctness
-#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     if (CHDIR(workingDir) != 0)
     {
         TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to change working directory", workingDir);
@@ -4557,7 +4557,7 @@ static Model LoadOBJ(const char *fileName)
     tinyobj_materials_free(objMaterials, objMaterialCount);
 
     // Restore current working directory
-#if !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)    
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)    
     if (CHDIR(currentDir) != 0)
     {
         TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to change working directory", currentDir);

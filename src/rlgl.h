@@ -2017,7 +2017,12 @@ void rlDisablePointMode(void)
 }
 
 // Set the line drawing width
-void rlSetLineWidth(float width) { glLineWidth(width); }
+void rlSetLineWidth(float width) 
+{ 
+    #if !defined(PLATFORM_PLAYSTATION2)
+        glLineWidth(width); 
+    #endif
+}
 
 // Get the line drawing width
 float rlGetLineWidth(void)
@@ -2320,9 +2325,25 @@ void rlglInit(int width, int height)
     // Init state: Culling
     // NOTE: All shapes/models triangles are drawn CCW
     glCullFace(GL_BACK);                                    // Cull the back face (default)
+#if !defined(PLATFORM_PLAYSTATION2)
     glFrontFace(GL_CCW);                                    // Front face are defined counter clockwise (default)
     glEnable(GL_CULL_FACE);                                 // Enable backface culling
+#else //PENDING REVIEW AND TESTING ON PLAYSTATION2
+    //glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_RESCALE_NORMAL);
+    //glDepthFunc(GL_LEQUAL);                                 // Type of depth testing to apply
+    // ps2gl needs lighting + color_material for per-vertex colors
+    //glEnable(GL_COLOR_MATERIAL);
+    //glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+    //glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHT0);
 
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glEnable(GL_RESCALE_NORMAL);
+#endif
     // Init state: Cubemap seamless
 #if defined(GRAPHICS_API_OPENGL_33)
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);                 // Seamless cubemaps (not supported on OpenGL ES 2.0)
@@ -3711,7 +3732,7 @@ void *rlReadTexturePixels(unsigned int id, int width, int height, int format)
     if ((glInternalFormat != 0) && (format < RL_PIXELFORMAT_COMPRESSED_DXT1_RGB))
     {
         pixels = RL_CALLOC(size,1);
-        #if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PSP)
+        #if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PSP) || defined(PLATFORM_PLAYSTATION2)
         #else
         glGetTexImage(GL_TEXTURE_2D, 0, glFormat, glType, pixels);
         #endif

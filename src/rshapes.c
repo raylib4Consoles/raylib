@@ -819,6 +819,40 @@ void DrawRectangleGradientEx(Rectangle rec, Color topLeft, Color bottomLeft, Col
     rlSetTexture(0);
 }
 
+void MyDrawRectangleGradientEx(Rectangle rec, Color topLeft, Color bottomLeft, Color topRight, Color bottomRight)
+{
+    rlSetTexture(GetShapesTexture().id);
+    Rectangle shapeRect = GetShapesTextureRectangle();
+
+    rlBegin(RL_QUADS);
+        rlNormal3f(0.0f, 0.0f, 1.0f);
+
+        // NOTE: Default raylib font character 95 is a white square
+        //rlColor4ub(topLeft.r, topLeft.g, topLeft.b, topLeft.a);
+        rlColor4f(1.0,0.0,0.0,1.0);
+        rlTexCoord2f(shapeRect.x/texShapes.width, shapeRect.y/texShapes.height);
+        rlVertex2f(rec.x, rec.y);
+
+        //rlColor4ub(bottomLeft.r, bottomLeft.g, bottomLeft.b, bottomLeft.a);
+        rlColor4f(0.0,1.0,0.0,1.0);
+        rlTexCoord2f(shapeRect.x/texShapes.width, (shapeRect.y + shapeRect.height)/texShapes.height);
+        rlVertex2f(rec.x, rec.y + rec.height);
+
+        //rlColor4ub(topRight.r, topRight.g, topRight.b, topRight.a);
+        rlColor4f(1.0,0.0,0.0,1.0);
+        rlTexCoord2f((shapeRect.x + shapeRect.width)/texShapes.width, (shapeRect.y + shapeRect.height)/texShapes.height);
+        rlVertex2f(rec.x + rec.width, rec.y + rec.height);
+
+        //rlColor4ub(bottomRight.r, bottomRight.g, bottomRight.b, bottomRight.a);
+        rlColor4f(0.0,1.0,0.0,1.0);
+        rlTexCoord2f((shapeRect.x + shapeRect.width)/texShapes.width, shapeRect.y/texShapes.height);
+        rlVertex2f(rec.x + rec.width, rec.y);
+    rlEnd();
+
+    rlSetTexture(0);
+}
+
+
 // Draw rectangle outline
 // WARNING: All Draw*Lines() functions use RL_LINES for drawing,
 // it implies flushing the current batch and changing draw mode to RL_LINES

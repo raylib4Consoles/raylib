@@ -33,6 +33,8 @@
 #         - Sega Dreamcast (SH4)
 #     > PLATFORM_NINTENDO64:
 #         - Nintendo 64 (MIPS4300)
+#     > PLATFORM_PLAYSTATION2:
+#         - PlayStation 2
 #     > PLATFORM_PSP:
 #         - PlayStation PSP
 #     > PLATFORM_VITA:
@@ -257,6 +259,11 @@ ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
 endif
 
 #PlayStation Platforms
+ifeq ($(PLATFORM),PLATFORM_PLAYSTATION2)
+    PLATFORM_OS = PLAYSTATION2
+    PLATFORM_SHELL = sh
+endif
+
 ifeq ($(PLATFORM),PLATFORM_PSP)
     PLATFORM_OS = PSP
     PLATFORM_SHELL = sh
@@ -317,6 +324,11 @@ endif
 
 ifeq ($(PLATFORM),PLATFORM_NINTENDO64)
     # By default use OpenGL 1.1 on NINTENDO64
+    GRAPHICS = GRAPHICS_API_OPENGL_11
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PLAYSTATION2)
+    # By default use OpenGL 1.1 on PLAYSTATION2
     GRAPHICS = GRAPHICS_API_OPENGL_11
 endif
 
@@ -396,6 +408,13 @@ endif
 ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
     CC = $(KOS_CC)
     AR = $(KOS_AR)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PLAYSTATION2)
+include $(PS2SDK)/samples/Makefile.pref
+include $(PS2SDK)/samples/Makefile.eeglobal_cpp
+    CC = $(EE_CXX)
+    AR = $(EE_AR)
 endif
 
 ifeq ($(PLATFORM),PLATFORM_PSP)
@@ -586,6 +605,11 @@ endif
 ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
     CFLAGS = $(KOS_CFLAGS) -Wno-error=incompatible-pointer-types -D$(PLATFORM) -D$(GRAPHICS) 
     INCLUDE_PATHS = $(KOS_INC_PATHS)
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PLAYSTATION2)
+    CFLAGS =  $(EE_CXXFLAGS) $(WARNING_FLAGS)  -DNO_VU0_VECTORS -DNO_ASM -fpermissive -D$(PLATFORM) -D$(GRAPHICS) 
+    INCLUDE_PATHS = -I. -Iinclude -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include -I$(PS2SDK)/ports/include
 endif
 
 ifeq ($(PLATFORM),PLATFORM_PSP)
@@ -959,6 +983,10 @@ endif
 
 ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
 PREFIX ?= $(KOS_PORTS)/raylib4dc/inst
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PLAYSTATION2)
+PREFIX ?= $(PS2SDK)/ports
 endif
 
 ifeq ($(PLATFORM),PLATFORM_PSP)
