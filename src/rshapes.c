@@ -475,6 +475,8 @@ void DrawEllipse(int centerX, int centerY, float radiusH, float radiusV, Color c
     DrawEllipseV((Vector2){ (float)centerX, (float)centerY }, radiusH, radiusV, color);
 }
 
+
+
 // Draw ellipse (Vector version)
 void DrawEllipseV(Vector2 center, float radiusH, float radiusV, Color color)
 {
@@ -492,6 +494,12 @@ void DrawEllipseV(Vector2 center, float radiusH, float radiusV, Color color)
 // Draw ellipse outline
 void DrawEllipseLines(int centerX, int centerY, float radiusH, float radiusV, Color color)
 {
+    DrawEllipseLinesV((Vector2){ (float)centerX, (float)centerY }, radiusH, radiusV, color);
+}
+
+// Draw ellipse outline
+void DrawEllipseLinesV(Vector2 center, float radiusH, float radiusV, Color color)
+{
     rlBegin(RL_LINES);
         for (int i = 0; i < 360; i += 10)
         {
@@ -501,6 +509,7 @@ void DrawEllipseLines(int centerX, int centerY, float radiusH, float radiusV, Co
         }
     rlEnd();
 }
+
 
 // Draw ring
 void DrawRing(Vector2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color)
