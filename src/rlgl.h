@@ -2061,7 +2061,9 @@ float rlGetLineWidth(void)
 void rlSetPointSize(float size)
 {
 #if defined(GRAPHICS_API_OPENGL_11)
+    #if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_PSP) && !defined(PLATFORM_NINTENDO64) && !defined(PLATFORM_DREAMCAST) 
     glPointSize(size);
+    #endif
 #endif
 }
 
@@ -2070,7 +2072,9 @@ float rlGetPointSize(void)
 {
     float size = 1;
 #if defined(GRAPHICS_API_OPENGL_11)
+    #if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_PSP) && !defined(PLATFORM_NINTENDO64) && !defined(PLATFORM_DREAMCAST)
     glGetFloatv(GL_POINT_SIZE, &size);
+    #endif
 #endif
     return size;
 

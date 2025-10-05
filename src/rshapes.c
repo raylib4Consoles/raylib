@@ -540,6 +540,12 @@ void DrawEllipseV(Vector2 center, float radiusH, float radiusV, Color color)
 // Draw ellipse outline
 void DrawEllipseLines(int centerX, int centerY, float radiusH, float radiusV, Color color)
 {
+    DrawEllipseLinesV((Vector2){ (float)centerX, (float)centerY }, radiusH, radiusV, color);
+}
+
+// Draw ellipse outline
+void DrawEllipseLinesV(Vector2 center, float radiusH, float radiusV, Color color)
+{
     rlBegin(RL_LINES);
         for (int i = 0; i < 360; i += 10)
         {
