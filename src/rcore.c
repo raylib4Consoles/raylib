@@ -977,6 +977,9 @@ void BeginDrawing(void)
 
     //rlTranslatef(0.375, 0.375, 0);    // HACK to have 2D pixel-perfect drawing on OpenGL 1.1
                                         // NOTE: Not required with OpenGL 3.3+
+#if defined(PLATFORM_PLAYSTATION2)
+    rlTranslatef(0.375, 0.375, 0);
+#endif
 }
 
 // End canvas drawing and swap buffers (double buffering)
@@ -1040,6 +1043,7 @@ void EndDrawing(void)
     CORE.Time.frame = CORE.Time.update + CORE.Time.draw;
 
     // Wait for some milliseconds...
+#if !defined(PLATFORM_PLAYSTATION2)
     if (CORE.Time.frame < CORE.Time.target)
     {
         WaitTime(CORE.Time.target - CORE.Time.frame);
@@ -1050,7 +1054,7 @@ void EndDrawing(void)
 
         CORE.Time.frame += waitTime;    // Total frame time: update + draw + wait
     }
-
+#endif
     PollInputEvents();      // Poll user events (before next frame update)
 #endif
 
@@ -1744,10 +1748,15 @@ Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera)
 // Set target FPS (maximum)
 void SetTargetFPS(int fps)
 {
+#if defined(PLATFORM_PLAYSTATION2)
+    SetTargetFPSPS2(fps);
+    return;
+#endif
     if (fps < 1) CORE.Time.target = 0.0;
     else CORE.Time.target = 1.0/(double)fps;
 
     TRACELOG(LOG_INFO, "TIMER: Target time per frame: %02.03f milliseconds", (float)CORE.Time.target*1000.0f);
+
 }
 
 // Get current FPS

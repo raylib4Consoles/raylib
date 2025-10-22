@@ -63,6 +63,8 @@
 #include <ps2s/timer.h>
 
 /* ps2gl */
+#include "GL/glut.h"
+#include "GL/ps2gl.h"
 #include <ps2gl/debug.h>
 #include <ps2gl/displaycontext.h>
 #include <ps2gl/drawcontext.h>
@@ -107,9 +109,19 @@ static const struct
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
 
+
+#define PS2GL_MAX_TEXTURE_LIMIT 10 //You can change this limit
+typedef struct {
+    GLuint id;
+    int    width, height;
+} ps2gl_surface_t;
+
+
 typedef struct {
     // TODO: Define the platform specific variables required
     int version;
+    ps2gl_surface_t surfaces[PS2GL_MAX_TEXTURE_LIMIT];
+    unsigned int surface_index;
 } PlatformData;
 
 //----------------------------------------------------------------------------------
@@ -376,16 +388,44 @@ void DisableCursor(void)
     CORE.Input.Mouse.cursorHidden = true;
 }
 
+int    gVBlankDivisor = 1;     // 1=~60 (NTSC), 2=~30, 3=~20, 4=~15 ...
+double gRefreshHz     = 59.94; // overwritten to 50.0 on PAL
+
+static inline void Ps2SetRefreshHz(bool pal) { gRefreshHz = pal ? 50.0 : 59.94; }
+
+void SetTargetFPSPS2(int fps)
+{
+    if (fps <= 0 || fps >= (int)(gRefreshHz - 0.5))
+    {
+        gVBlankDivisor = 1;
+    }
+    else
+    {
+        int div = (int)lround(gRefreshHz / (double)fps);
+        if (div < 1) div = 1;
+        gVBlankDivisor = div;
+    }
+    TRACELOG(LOG_INFO,
+        "PS2: vblank pacing refresh=%.2f Hz, target=%d fps -> divisor=%d (actual ~%.2f fps)",
+        gRefreshHz, fps, gVBlankDivisor, gRefreshHz / gVBlankDivisor);
+}
+
 // Swap back buffer with front buffer (screen drawing)
 void SwapScreenBuffer(void)
 {
     pglEndGeometry();
 
     if (!firstTime)
+    {
         pglFinishRenderingGeometry(PGL_DONT_FORCE_IMMEDIATE_STOP);
+    }
     else
+    {
         firstTime = false;
-    pglWaitForVSync();
+    }
+    for (int i = 0; i < gVBlankDivisor; ++i) {
+        pglWaitForVSync();
+    }
     pglSwapBuffers();
     pglRenderGeometry();
 }
@@ -903,6 +943,23 @@ int initializePad(int port, int slot)
 
     return 1;
 }
+
+void rlLoadTexturePS2(unsigned int id, const void *data, int width, int height)
+{
+    const size_t imageSize = (size_t)width * (size_t)height * 4u;
+    uint8_t *texels = (uint8_t*)pglutAllocDmaMem(imageSize);
+    memcpy(texels, data, imageSize);
+
+    glBindTexture(GL_TEXTURE_2D, id);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texels);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
 // Initialize platform: graphics, inputs and more
 int InitPlatform(void)
 {
@@ -968,13 +1025,13 @@ int InitPlatform(void)
     }
 
     // does gs memory need to be initialized?
-
+    bool pal = false;
     if (!pglHasGsMemBeenInitted()) {
         TRACELOG(LOG_INFO,"GS memory has not been allocated by the user; using default values.");
         //pal true ntsc false
-        initGsMemoryForRaylib(false);
+        initGsMemoryForRaylib(pal);
     }
-
+    Ps2SetRefreshHz(pal);
 
    
 

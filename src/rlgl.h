@@ -770,6 +770,9 @@ RLAPI void rlDrawVertexArrayElementsInstanced(int offset, int count, const void 
 #if defined(PLATFORM_NINTENDO64)
 void rlLoadTextureN64(const void *data, int width, int height, int format, int mipmapCount);
 #endif
+#if defined(PLATFORM_PLAYSTATION2)
+void rlLoadTexturePS2(unsigned int id, const void *data, int width, int height);
+#endif
 RLAPI unsigned int rlLoadTexture(const void *data, int width, int height, int format, int mipmapCount); // Load texture data
 RLAPI unsigned int rlLoadTextureDepth(int width, int height, bool useRenderBuffer); // Load depth texture/renderbuffer (to be attached to fbo)
 RLAPI unsigned int rlLoadTextureCubemap(const void *data, int size, int format, int mipmapCount); // Load texture cubemap data
@@ -3471,6 +3474,10 @@ unsigned int rlLoadTexture(const void *data, int width, int height, int format, 
 
 #if defined(PLATFORM_NINTENDO64) //glTextParameter must be set before upload to gpu 
     rlLoadTextureN64(data,width,height,format,mipmapCount);
+#endif
+#if defined(PLATFORM_PLAYSTATION2)
+    rlLoadTexturePS2(id, data, width, height);
+    TRACELOG(RL_LOG_INFO, "TEXTURE: [ID %u] PS2 upload %dx%d RGBA8", id, width, height);
 #endif
     // At this point we have the texture loaded in GPU and texture parameters configured
 
