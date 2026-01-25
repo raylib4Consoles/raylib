@@ -39,7 +39,8 @@ static KeyboardKey ConvertScancodeToKey(SDL_Scancode scancode)
 
 bool WindowShouldClose(void)
 {
-  return CORE.Window.shouldClose;
+  if (CORE.Window.ready) return CORE.Window.shouldClose;
+  else return true;
 }
 
 void ToggleFullscreen(void)
@@ -73,6 +74,26 @@ double GetTime(void)
   return (double)SDL_GetTicks() / 1000.0;
 }
 
+static KeyboardKey ConvertJoystickButtonToKey(int button)
+{
+  switch (button)
+  {
+    case 0: return KEY_SPACE;
+    case 1: return KEY_ESCAPE;
+    case 2: return KEY_LEFT_SHIFT;
+    case 3: return KEY_ENTER;
+    case 4: return KEY_L;
+    case 5: return KEY_R;
+    case 6: return KEY_DOWN;
+    case 7: return KEY_LEFT;
+    case 8: return KEY_UP;
+    case 9: return KEY_RIGHT;
+    case 10: return KEY_TAB;
+    case 11: return KEY_ESCAPE;
+    default: return KEY_NULL;
+  }
+}
+
 void PollInputEvents(void)
 {
   CORE.Input.Keyboard.keyPressedQueueCount = 0;
@@ -86,38 +107,62 @@ void PollInputEvents(void)
 
   SDL_Event event;
   while (SDL_PollEvent(&event))
-  {
+  {    
     switch (event.type)
     {
       case SDL_QUIT:
         CORE.Window.shouldClose = true;
         break;
-
+        
       case SDL_KEYDOWN:
       {
         KeyboardKey key = ConvertScancodeToKey(event.key.keysym.scancode);
         if (key != KEY_NULL)
         {
           CORE.Input.Keyboard.currentKeyState[key] = 1;
-
           if (!event.key.repeat &&
             CORE.Input.Keyboard.keyPressedQueueCount < MAX_KEY_PRESSED_QUEUE)
           {
             CORE.Input.Keyboard.keyPressedQueue[
               CORE.Input.Keyboard.keyPressedQueueCount++] = key;
           }
-
           if (event.key.repeat)
             CORE.Input.Keyboard.keyRepeatInFrame[key] = 1;
         }
       } break;
-
+      
       case SDL_KEYUP:
       {
         KeyboardKey key = ConvertScancodeToKey(event.key.keysym.scancode);
         if (key != KEY_NULL) CORE.Input.Keyboard.currentKeyState[key] = 0;
       } break;
-
+      
+      case SDL_JOYBUTTONDOWN:
+      {
+        KeyboardKey key = ConvertJoystickButtonToKey(event.jbutton.button);
+        if (key != KEY_NULL)
+        {
+          CORE.Input.Keyboard.currentKeyState[key] = 1;
+          if (CORE.Input.Keyboard.keyPressedQueueCount < MAX_KEY_PRESSED_QUEUE)
+          {
+            CORE.Input.Keyboard.keyPressedQueue[
+              CORE.Input.Keyboard.keyPressedQueueCount++] = key;
+          }
+        }
+      } break;
+      
+      case SDL_JOYBUTTONUP:
+      {
+        KeyboardKey key = ConvertJoystickButtonToKey(event.jbutton.button);
+        if (key != KEY_NULL) CORE.Input.Keyboard.currentKeyState[key] = 0;
+      } break;
+      
+      case SDL_JOYAXISMOTION:
+      {
+        // todo
+        // TraceLog(LOG_INFO, "Joystick axis: %d value: %d", event.jaxis.axis, event.jaxis.value);
+      } break;
+      
       default: break;
     }
   }
@@ -125,7 +170,7 @@ void PollInputEvents(void)
 
 int InitPlatform(void)
 {
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0)
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0)
   {
     TRACELOG(LOG_FATAL, "SDL: Initialization failed");
     return -1;
@@ -149,6 +194,25 @@ int InitPlatform(void)
   {
     TRACELOG(LOG_FATAL, "PSP: Failed to create window or GL context");
     return -1;
+  }
+
+
+  int numJoysticks = SDL_NumJoysticks();
+  TRACELOG(LOG_INFO, "Number of joysticks detected: %d", numJoysticks);
+
+  if (numJoysticks > 0)
+  {
+    SDL_Joystick *joystick = SDL_JoystickOpen(0);
+    if (joystick)
+    {
+      TRACELOG(LOG_INFO, "Joystick 0 opened: %s", SDL_JoystickName(joystick));
+      TRACELOG(LOG_INFO, "Joystick buttons: %d", SDL_JoystickNumButtons(joystick));
+      TRACELOG(LOG_INFO, "Joystick axes: %d", SDL_JoystickNumAxes(joystick));
+    }
+    else
+    {
+      TRACELOG(LOG_WARNING, "Failed to open joystick 0");
+    }
   }
 
   CORE.Window.ready = true;
