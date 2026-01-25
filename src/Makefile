@@ -33,6 +33,8 @@
 #         - Nintendo 64 (MIPS4300)
 #     > PLATFORM_PSP:
 #         - PlayStation PSP
+#     > PLATFORM_PSP_SDL:
+#         - PlayStation PSP with SDL2 backend
 #     > PLATFORM_VITA:
 #         - PlayStation Vita
 #     > PLATFORM_ORBIS:
@@ -69,7 +71,7 @@
 
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
-# Define target platform: PLATFORM_DESKTOP, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB, PLATFORM_DREAMCAST, PLATFORM_NINTENDO64 ,PLATFORM_PSP, PLATFORM_VITA, PLATFORM_ORBIS, PLATFORM_PROSPERO
+# Define target platform: PLATFORM_DESKTOP, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB, PLATFORM_DREAMCAST, PLATFORM_NINTENDO64 ,PLATFORM_PSP, PLATFORM_PSP_SDL, PLATFORM_VITA, PLATFORM_ORBIS, PLATFORM_PROSPERO
 PLATFORM             ?= PLATFORM_DREAMCAST
 
 ifeq ($(PLATFORM), PLATFORM_DESKTOP)
@@ -262,6 +264,11 @@ ifeq ($(PLATFORM),PLATFORM_PSP)
     PLATFORM_SHELL = sh
 endif
 
+ifeq ($(PLATFORM),PLATFORM_PSP_SDL)
+    PLATFORM_OS = PSP
+    PLATFORM_SHELL = sh
+endif
+
 ifeq ($(PLATFORM),PLATFORM_VITA)
     PLATFORM_OS = VITA
     PLATFORM_SHELL = sh
@@ -322,6 +329,11 @@ endif
 
 ifeq ($(PLATFORM),PLATFORM_PSP)
     # By default use OpenGL 1.1 on PSP
+    GRAPHICS = GRAPHICS_API_OPENGL_11
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PSP_SDL)
+    # By default use OpenGL 1.1 on PSP with SDL2
     GRAPHICS = GRAPHICS_API_OPENGL_11
 endif
 
@@ -399,6 +411,11 @@ ifeq ($(PLATFORM),PLATFORM_DREAMCAST)
 endif
 
 ifeq ($(PLATFORM),PLATFORM_PSP)
+    CC = psp-gcc
+    AR = psp-ar
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PSP_SDL)
     CC = psp-gcc
     AR = psp-ar
 endif
@@ -586,6 +603,13 @@ ifeq ($(PLATFORM),PLATFORM_PSP)
     INCLUDE_PATHS = -I. -Iinclude -I$(PSPDEV)/psp/include -I$(PSPDEV)/psp/sdk/include
 endif
 
+ifeq ($(PLATFORM),PLATFORM_PSP_SDL)
+    CFLAGS = -Wl,-q -Wall -Wno-incompatible-pointer-types -Wno-pointer-sign -O3 -nostartfiles -D__PSP__ -D$(PLATFORM) -D$(GRAPHICS)
+    INCLUDE_PATHS = -I. -Iinclude -I$(PSPDEV)/psp/include -I$(PSPDEV)/psp/sdk/include
+    SDL_INCLUDE_PATH = $(PSPDEV)/psp/include/SDL2
+    INCLUDE_PATHS += -I$(SDL_INCLUDE_PATH)
+endif
+
 ifeq ($(PLATFORM),PLATFORM_VITA)
     CFLAGS = -Wl,-q -Wall -Wno-incompatible-pointer-types -Wno-pointer-sign -O3 -nostartfiles -DVITA -D$(PLATFORM) -D$(GRAPHICS) 
     INCLUDE_PATHS = -I.
@@ -761,6 +785,14 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
     LDLIBS = -llog -landroid -lEGL -lGLESv2 -lOpenSLES -lc -lm
+endif
+
+ifeq ($(TARGET_PLATFORM),PLATFORM_PSP_SDL)
+    LDFLAGS += -L$(PSPDEV)/psp/lib -L$(PSPDEV)/psp/sdk/lib
+endif
+
+ifeq ($(TARGET_PLATFORM),PLATFORM_PSP_SDL)
+    LDLIBS = -lSDL2 -lGL -lpspgu -lpspgum -lpspaudio -lpsppower -lpspvfpu -lpspdisplay -lpsphprm -lpspctrl -lm -lc -lpspuser -lpspkernel
 endif
 
 # Define source code object files required
@@ -944,6 +976,10 @@ PREFIX ?= $(KOS_PORTS)
 endif
 
 ifeq ($(PLATFORM),PLATFORM_PSP)
+PREFIX ?= $(PSPDEV)/psp
+endif
+
+ifeq ($(PLATFORM),PLATFORM_PSP_SDL)
 PREFIX ?= $(PSPDEV)/psp
 endif
 

@@ -25,7 +25,9 @@
 *           - Nintendo 64 (MIPS4300)
 *       > PLATFORM_PSP:
 *           - PlayStation Psp
-*       > PLATFORM_VITA:
+*       > PLATFORM_PSP_SDL:
+*           - PlayStation Psp SDL
+* *       > PLATFORM_VITA:
 *           - PlayStation Vita
 *       > PLATFORM_ORBIS:
 *           - PlayStation 4 Orbis
@@ -569,6 +571,8 @@ const char *TextFormat(const char *text, ...);              // Formatting of tex
     #include "platforms/rcore_nintendo64.c"
 #elif defined(PLATFORM_PSP)
     #include "platforms/rcore_psp.c"
+#elif defined(PLATFORM_PSP_SDL)
+    #include "platforms/rcore_psp_sdl.c"
 #elif defined(PLATFORM_VITA)
     #include "platforms/rcore_vita.c"
 #elif defined(PLATFORM_ORBIS)
@@ -653,6 +657,8 @@ void InitWindow(int width, int height, const char *title)
     TRACELOG(LOG_INFO, "Platform backend: NINTENDO64");
 #elif defined(PLATFORM_PSP)
     TRACELOG(LOG_INFO, "Platform backend: PSP");
+#elif defined(PLATFORM_PSP_SDL)
+    TRACELOG(LOG_INFO, "Platform backend: PSP SDL");
 #elif defined(PLATFORM_VITA)
     TRACELOG(LOG_INFO, "Platform backend: VITA");
 #elif defined(PLATFORM_ORBIS)
@@ -710,7 +716,7 @@ void InitWindow(int width, int height, const char *title)
 
     // Initialize platform
     //--------------------------------------------------------------
-#if defined(PLATFORM_PSP) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+#if defined(PLATFORM_PSP) || defined(PLATFORM_PSP_SDL) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
     int ret=InitPlatform();
     if(ret!=0)
     {
@@ -3594,7 +3600,7 @@ void InitTimer(void)
     timeBeginPeriod(1);                 // Setup high-resolution timer to 1ms (granularity of 1-2 ms)
 #endif
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__) || defined(PLATFORM_DREAMCAST) || defined(PLATFORM_PSP) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__) || defined(PLATFORM_DREAMCAST) || defined(PLATFORM_PSP) || defined(PLATFORM_PSP_SDL) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
     struct timespec now = { 0 };
 
     if (clock_gettime(CLOCK_MONOTONIC, &now) == 0)  // Success
