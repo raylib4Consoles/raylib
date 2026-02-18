@@ -36,7 +36,7 @@
 #define SUPPORT_MODULE_RTEXTURES        1
 #define SUPPORT_MODULE_RTEXT            1       // WARNING: It requires SUPPORT_MODULE_RTEXTURES to load sprite font textures
 #define SUPPORT_MODULE_RMODELS          1
-//#define SUPPORT_MODULE_RAUDIO           1
+#define SUPPORT_MODULE_RAUDIO           1
 
 //------------------------------------------------------------------------------------
 // Module: rcore - Configuration Flags
@@ -267,7 +267,7 @@
 //------------------------------------------------------------------------------------
 // Desired audio fileformats to be supported for loading
 #define SUPPORT_FILEFORMAT_WAV          1
-#define SUPPORT_FILEFORMAT_OGG          1
+//#define SUPPORT_FILEFORMAT_OGG          1
 #define SUPPORT_FILEFORMAT_MP3          1
 #define SUPPORT_FILEFORMAT_QOA          1
 //#define SUPPORT_FILEFORMAT_FLAC         1
