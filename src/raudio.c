@@ -502,7 +502,7 @@ void InitAudioDevice(void)
     config.capture.pDeviceID = NULL;  // NULL for the default capture AUDIO.System.device
     config.capture.format = ma_format_s16;
     config.capture.channels = 1;
-    config.sampleRate = 44100;AUDIO_DEVICE_SAMPLE_RATE;
+    config.sampleRate = AUDIO_DEVICE_SAMPLE_RATE;
     config.dataCallback = OnSendAudioDataToDevice;
     config.pUserData = NULL;
 #endif
