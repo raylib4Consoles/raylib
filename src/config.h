@@ -36,7 +36,7 @@
 #define SUPPORT_MODULE_RTEXTURES        1
 #define SUPPORT_MODULE_RTEXT            1       // WARNING: It requires SUPPORT_MODULE_RTEXTURES to load sprite font textures
 #define SUPPORT_MODULE_RMODELS          1
-//#define SUPPORT_MODULE_RAUDIO           1
+#define SUPPORT_MODULE_RAUDIO           1
 
 //------------------------------------------------------------------------------------
 // Module: rcore - Configuration Flags
@@ -267,7 +267,7 @@
 //------------------------------------------------------------------------------------
 // Desired audio fileformats to be supported for loading
 #define SUPPORT_FILEFORMAT_WAV          1
-#define SUPPORT_FILEFORMAT_OGG          1
+//#define SUPPORT_FILEFORMAT_OGG          1
 #define SUPPORT_FILEFORMAT_MP3          1
 #define SUPPORT_FILEFORMAT_QOA          1
 //#define SUPPORT_FILEFORMAT_FLAC         1
@@ -279,7 +279,11 @@
 #define AUDIO_DEVICE_FORMAT    ma_format_f32    // Device output format (miniaudio: float-32bit)
 #define AUDIO_DEVICE_CHANNELS              2    // Device output channels: stereo
 #define AUDIO_DEVICE_SAMPLE_RATE           0    // Device sample rate (device default)
-
+#if defined(PLATFORM_DREAMCAST)
+#define AUDIO_DEVICE_PERIOD_SIZE_IN_FRAMES 2048    // Device period size (controls latency, 0 defaults to 10ms)
+#else
+#define AUDIO_DEVICE_PERIOD_SIZE_IN_FRAMES 0    // Device period size (controls latency, 0 defaults to 10ms)
+#endif
 #define MAX_AUDIO_BUFFER_POOL_CHANNELS    16    // Maximum number of audio pool channels
 
 //------------------------------------------------------------------------------------
