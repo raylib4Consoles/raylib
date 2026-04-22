@@ -1180,7 +1180,7 @@ else ifeq ($(OS),Darwin) # macOS
 	rsync -u raymath.h $(RAYLIB_H_INSTALL_PATH)/raymath.h
 	rsync -u rlgl.h $(RAYLIB_H_INSTALL_PATH)/rlgl.h
 	rsync -u rcamera.h $(RAYLIB_H_INSTALL_PATH)/rcamera.h
-	rsync -u rcamera.h $(RAYLIB_H_INSTALL_PATH)/rayspine.h
+	rsync -u rayspine.h $(RAYLIB_H_INSTALL_PATH)/rayspine.h
 
 else # Linux
 	cp --update --verbose $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).a
