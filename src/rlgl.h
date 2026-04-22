@@ -130,6 +130,17 @@
     #define TRACELOG(level, ...) (void)0
 #endif
 
+#if defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+#include <stdio.h>
+//#include <user_mem.h>
+//int locationTextureIndex;
+extern char* default_vertex_shader;
+extern int default_vertex_shader_length;
+extern char* default_fragment_shader;
+extern int default_fragment_shader_length;
+#endif
+
+
 // Allow custom memory allocators
 #ifndef RL_MALLOC
     #define RL_MALLOC(sz)     malloc(sz)
@@ -749,6 +760,12 @@ RLAPI void rlDrawVertexArrayInstanced(int offset, int count, int instances); // 
 RLAPI void rlDrawVertexArrayElementsInstanced(int offset, int count, const void *buffer, int instances); // Draw vertex array elements with instancing
 
 // Textures management
+#if defined(PLATFORM_NINTENDO64)
+void rlLoadTextureN64(const void *data, int width, int height, int format, int mipmapCount);
+#endif
+#if defined(PLATFORM_PLAYSTATION2)
+void rlLoadTexturePS2(unsigned int id, const void *data, int width, int height);
+#endif
 RLAPI unsigned int rlLoadTexture(const void *data, int width, int height, int format, int mipmapCount); // Load texture data
 RLAPI unsigned int rlLoadTextureDepth(int width, int height, bool useRenderBuffer); // Load depth texture/renderbuffer (to be attached to fbo)
 RLAPI unsigned int rlLoadTextureCubemap(const void *data, int size, int format, int mipmapCount); // Load texture cubemap data
@@ -1566,10 +1583,11 @@ void rlVertex3f(float x, float y, float z)
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.State.vertexCounter + 1] = RLGL.State.texcoordy;
 
     // Add current normal
+#if !defined(PLATFORM_VITA)
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].normals[3*RLGL.State.vertexCounter] = RLGL.State.normalx;
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].normals[3*RLGL.State.vertexCounter + 1] = RLGL.State.normaly;
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].normals[3*RLGL.State.vertexCounter + 2] = RLGL.State.normalz;
-
+#endif
     // Add current color
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.State.vertexCounter] = RLGL.State.colorr;
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.State.vertexCounter + 1] = RLGL.State.colorg;
@@ -1965,8 +1983,12 @@ void rlEnableBackfaceCulling(void) { glEnable(GL_CULL_FACE); }
 void rlDisableBackfaceCulling(void) { glDisable(GL_CULL_FACE); }
 
 // Set color mask active for screen read/draw
-void rlColorMask(bool r, bool g, bool b, bool a) { glColorMask(r, g, b, a); }
-
+void rlColorMask(bool r, bool g, bool b, bool a) 
+{ 
+#if !defined(PLATFORM_NINTENDO64) 
+    glColorMask(r, g, b, a);
+#endif 
+}
 // Set face culling mode
 void rlSetCullFace(int mode)
 {
@@ -2025,13 +2047,19 @@ void rlDisablePointMode(void)
 }
 
 // Set the line drawing width
-void rlSetLineWidth(float width) { glLineWidth(width); }
-
+void rlSetLineWidth(float width) 
+{ 
+    #if !defined(PLATFORM_PLAYSTATION2)
+        glLineWidth(width); 
+    #endif
+}
 // Get the line drawing width
 float rlGetLineWidth(void)
 {
     float width = 0;
+    #if !defined(PLATFORM_PLAYSTATION2)
     glGetFloatv(GL_LINE_WIDTH, &width);
+    #endif
     return width;
 }
 
@@ -2039,7 +2067,9 @@ float rlGetLineWidth(void)
 void rlSetPointSize(float size)
 {
 #if defined(GRAPHICS_API_OPENGL_11)
+    #if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL) && !defined(PLATFORM_NINTENDO64) 
     glPointSize(size);
+    #endif
 #endif
 }
 
@@ -2048,7 +2078,9 @@ float rlGetPointSize(void)
 {
     float size = 1;
 #if defined(GRAPHICS_API_OPENGL_11)
+    #if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_PSP) && !defined(PLATFORM_NINTENDO64) && !defined(PLATFORM_DREAMCAST)
     glGetFloatv(GL_POINT_SIZE, &size);
+    #endif
 #endif
     return size;
 
@@ -2316,7 +2348,9 @@ void rlglInit(int width, int height)
 
     // Init default vertex arrays buffers
     // Simulate that the default shader has the location RL_SHADER_LOC_VERTEX_NORMAL to bind the normal buffer for the default render batch
+#if !defined(PLATFORM_VITA)  
     RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL] = RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL;
+#endif
     RLGL.defaultBatch = rlLoadRenderBatch(RL_DEFAULT_BATCH_BUFFERS, RL_DEFAULT_BATCH_BUFFER_ELEMENTS);
     RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL] = -1;
     RLGL.currentBatch = &RLGL.defaultBatch;
@@ -2344,7 +2378,11 @@ void rlglInit(int width, int height)
     // Initialize OpenGL default states
     //----------------------------------------------------------
     // Init state: Depth test
+#if defined(PLATFORM_NINTENDO64) //to review in libdragon
+    glDepthFunc(GL_LESS_INTERPENETRATING_N64);              // Type of depth testing to apply
+#else
     glDepthFunc(GL_LEQUAL);                                 // Type of depth testing to apply
+#endif
     glDisable(GL_DEPTH_TEST);                               // Disable depth testing for 2D (only used for 3D)
 
     // Init state: Blending mode
@@ -2354,12 +2392,30 @@ void rlglInit(int width, int height)
     // Init state: Culling
     // NOTE: All shapes/models triangles are drawn CCW
     glCullFace(GL_BACK);                                    // Cull the back face (default)
+#if !defined(PLATFORM_PLAYSTATION2)   
     glFrontFace(GL_CCW);                                    // Front face are defined counter clockwise (default)
     glEnable(GL_CULL_FACE);                                 // Enable backface culling
+#else
+    //glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_RESCALE_NORMAL);
+    //glDepthFunc(GL_LEQUAL);                                 // Type of depth testing to apply
+    // ps2gl needs lighting + color_material for per-vertex colors
+    //glEnable(GL_COLOR_MATERIAL);
+    //glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+    //glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHT0);
 
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glEnable(GL_RESCALE_NORMAL);
+#endif
 #if defined(GRAPHICS_API_OPENGL_11)
     // Init state: Color hints (deprecated in OpenGL 3.0+)
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);      // Improve quality of color and texture coordinate interpolation
+#endif
     glShadeModel(GL_SMOOTH);                                // Smooth shading between vertex (vertex colors interpolation)
 #endif
 #if defined(GRAPHICS_API_OPENGL_33)
@@ -2815,7 +2871,9 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
 
         batch.vertexBuffer[i].vertices = (float *)RL_CALLOC(bufferElements*3*4, sizeof(float));     // 3 float by vertex, 4 vertex by quad
         batch.vertexBuffer[i].texcoords = (float *)RL_CALLOC(bufferElements*2*4, sizeof(float));    // 2 float by texcoord, 4 texcoord by quad
+#if !defined(PLATFORM_VITA)                
         batch.vertexBuffer[i].normals = (float *)RL_CALLOC(bufferElements*3*4, sizeof(float));      // 3 float by vertex, 4 vertex by quad
+#endif    
         batch.vertexBuffer[i].colors = (unsigned char *)RL_CALLOC(bufferElements*4*4, sizeof(unsigned char));   // 4 float by color, 4 colors by quad
 #if defined(GRAPHICS_API_OPENGL_33)
         batch.vertexBuffer[i].indices = (unsigned int *)RL_CALLOC(bufferElements*6, sizeof(unsigned int));      // 6 int by quad (indices)
@@ -2826,7 +2884,9 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
 
         for (int j = 0; j < (3*4*bufferElements); j++) batch.vertexBuffer[i].vertices[j] = 0.0f;
         for (int j = 0; j < (2*4*bufferElements); j++) batch.vertexBuffer[i].texcoords[j] = 0.0f;
+#if !defined(PLATFORM_VITA)        
         for (int j = 0; j < (3*4*bufferElements); j++) batch.vertexBuffer[i].normals[j] = 0.0f;
+#endif
         for (int j = 0; j < (4*4*bufferElements); j++) batch.vertexBuffer[i].colors[j] = 0;
 
         int k = 0;
@@ -2877,12 +2937,13 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
         glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_TEXCOORD01], 2, GL_FLOAT, 0, 0, 0);
 
         // Vertex normal buffer (shader-location = 2)
+#if !defined(PLATFORM_VITA)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[2]);
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[2]);
         glBufferData(GL_ARRAY_BUFFER, bufferElements*3*4*sizeof(float), batch.vertexBuffer[i].normals, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL]);
         glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL], 3, GL_FLOAT, 0, 0, 0);
-
+#endif
         // Vertex color buffer (shader-location = 3)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[3]);
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[3]);
@@ -2949,7 +3010,9 @@ void rlUnloadRenderBatch(rlRenderBatch batch)
             glBindVertexArray(batch.vertexBuffer[i].vaoId);
             glDisableVertexAttribArray(RL_DEFAULT_SHADER_ATTRIB_LOCATION_POSITION);
             glDisableVertexAttribArray(RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD);
+#if !defined(PLATFORM_VITA)
             glDisableVertexAttribArray(RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL);
+#endif
             glDisableVertexAttribArray(RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR);
             glBindVertexArray(0);
         }
@@ -2957,7 +3020,9 @@ void rlUnloadRenderBatch(rlRenderBatch batch)
         // Delete VBOs from GPU (VRAM)
         glDeleteBuffers(1, &batch.vertexBuffer[i].vboId[0]);
         glDeleteBuffers(1, &batch.vertexBuffer[i].vboId[1]);
+#if !defined(PLATFORM_VITA)
         glDeleteBuffers(1, &batch.vertexBuffer[i].vboId[2]);
+#endif
         glDeleteBuffers(1, &batch.vertexBuffer[i].vboId[3]);
         glDeleteBuffers(1, &batch.vertexBuffer[i].vboId[4]);
 
@@ -2967,7 +3032,9 @@ void rlUnloadRenderBatch(rlRenderBatch batch)
         // Free vertex arrays memory from CPU (RAM)
         RL_FREE(batch.vertexBuffer[i].vertices);
         RL_FREE(batch.vertexBuffer[i].texcoords);
+#if !defined(PLATFORM_VITA)
         RL_FREE(batch.vertexBuffer[i].normals);
+#endif
         RL_FREE(batch.vertexBuffer[i].colors);
         RL_FREE(batch.vertexBuffer[i].indices);
     }
@@ -2996,24 +3063,40 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
 
         // Vertex positions buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[0]);
+#if !defined(PLATFORM_PROSPERO)
         glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*3*sizeof(float), batch->vertexBuffer[batch->currentBuffer].vertices);
+#else
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*3*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].vertices, GL_DYNAMIC_DRAW);  // Update all buffer
+#endif
         //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*3*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].vertices, GL_DYNAMIC_DRAW);  // Update all buffer
 
         // Texture coordinates buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[1]);
+#if !defined(PLATFORM_PROSPERO)
         glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*2*sizeof(float), batch->vertexBuffer[batch->currentBuffer].texcoords);
+#else
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*2*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].texcoords, GL_DYNAMIC_DRAW); // Update all buffer
+#endif      
         //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*2*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].texcoords, GL_DYNAMIC_DRAW); // Update all buffer
 
         // Normals buffer
+#if !defined(PLATFORM_VITA)
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[2]);
+#if !defined(PLATFORM_PROSPERO)
         glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*3*sizeof(float), batch->vertexBuffer[batch->currentBuffer].normals);
+#else
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*3*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].normals, GL_DYNAMIC_DRAW); // Update all buffer
+#endif
         //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*3*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].normals, GL_DYNAMIC_DRAW); // Update all buffer
-
+#endif
         // Colors buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[3]);
+#if !defined(PLATFORM_PROSPERO)
         glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*4*sizeof(unsigned char), batch->vertexBuffer[batch->currentBuffer].colors);
+#else
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*4*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].colors, GL_DYNAMIC_DRAW);    // Update all buffer
+#endif
         //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*4*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].colors, GL_DYNAMIC_DRAW);    // Update all buffer
-
         // NOTE: glMapBuffer() causes sync issue
         // If GPU is working with this buffer, glMapBuffer() will wait(stall) until GPU to finish its job
         // To avoid waiting (idle), glBufferData() can bee called first with NULL pointer before glMapBuffer()
@@ -3081,12 +3164,12 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
             {
                 glUniformMatrix4fv(RLGL.State.currentShaderLocs[RL_SHADER_LOC_MATRIX_MODEL], 1, false, rlMatrixToFloat(RLGL.State.transform));
             }
-
+#if !defined(PLATFORM_VITA)
             if (RLGL.State.currentShaderLocs[RL_SHADER_LOC_MATRIX_NORMAL] != -1)
             {
                 glUniformMatrix4fv(RLGL.State.currentShaderLocs[RL_SHADER_LOC_MATRIX_NORMAL], 1, false, rlMatrixToFloat(rlMatrixTranspose(rlMatrixInvert(RLGL.State.transform))));
             }
-
+#endif
             if (RLGL.ExtSupported.vao) glBindVertexArray(batch->vertexBuffer[batch->currentBuffer].vaoId);
             else
             {
@@ -3099,12 +3182,12 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
                 glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[1]);
                 glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_TEXCOORD01], 2, GL_FLOAT, 0, 0, 0);
                 glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_TEXCOORD01]);
-
+#if !defined(PLATFORM_VITA)
                 // Bind vertex attrib: normal (shader-location = 2)
                 glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[2]);
                 glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL], 3, GL_FLOAT, 0, 0, 0);
                 glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL]);
-
+#endif
                 // Bind vertex attrib: color (shader-location = 3)
                 glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[3]);
                 glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_COLOR], 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, 0);
@@ -3330,11 +3413,12 @@ unsigned int rlLoadTexture(const void *data, int width, int height, int format, 
 
         if (glInternalFormat != 0)
         {
+#if !defined(PLATFORM_NINTENDO64)
             if (format < RL_PIXELFORMAT_COMPRESSED_DXT1_RGB) glTexImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipWidth, mipHeight, 0, glFormat, glType, dataPtr);
 #if !defined(GRAPHICS_API_OPENGL_11)
             else glCompressedTexImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipWidth, mipHeight, 0, mipSize, dataPtr);
 #endif
-
+#endif
 #if defined(GRAPHICS_API_OPENGL_33)
             if (format == RL_PIXELFORMAT_UNCOMPRESSED_GRAYSCALE)
             {
@@ -3404,7 +3488,13 @@ unsigned int rlLoadTexture(const void *data, int width, int height, int format, 
         //glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &complete);
     }
 #endif
-
+#if defined(PLATFORM_NINTENDO64) //glTextParameter must be set before upload to gpu 
+    rlLoadTextureN64(data,width,height,format,mipmapCount);
+#endif
+#if defined(PLATFORM_PLAYSTATION2)
+    rlLoadTexturePS2(id, data, width, height);
+    TRACELOG(RL_LOG_INFO, "TEXTURE: [ID %u] PS2 upload %dx%d RGBA8", id, width, height);
+#endif
     // At this point texture is loaded in GPU and texture parameters configured
 
     // NOTE: If mipmaps were not in data, they are not generated automatically
@@ -3599,7 +3689,10 @@ void rlUpdateTexture(unsigned int id, int offsetX, int offsetY, int width, int h
 
     if ((glInternalFormat != 0) && (format < RL_PIXELFORMAT_COMPRESSED_DXT1_RGB))
     {
+#if defined(PLATFORM_NINTENDO64)
+#else
         glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX, offsetY, width, height, glFormat, glType, data);
+#endif
     }
     else TRACELOG(RL_LOG_WARNING, "TEXTURE: [ID %i] Failed to update for current texture format (%i)", id, format);
 }
@@ -3745,7 +3838,10 @@ void *rlReadTexturePixels(unsigned int id, int width, int height, int format)
     if ((glInternalFormat != 0) && (format < RL_PIXELFORMAT_COMPRESSED_DXT1_RGB))
     {
         pixels = RL_CALLOC(size, 1);
+#if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PSP) || defined(PLATFORM_PLAYSTATION2)
+#else
         glGetTexImage(GL_TEXTURE_2D, 0, glFormat, glType, pixels);
+#endif
     }
     else TRACELOG(RL_LOG_WARNING, "TEXTURE: [ID %i] Data retrieval not suported for pixel format (%i)", id, format);
 
@@ -3806,8 +3902,10 @@ unsigned char *rlReadScreenPixels(int width, int height)
 
     // NOTE: glReadPixels() returns image flipped vertically -> (0,0) is the bottom left corner of the framebuffer
     // WARNING: Getting alpha channel! Be careful, it can be transparent if not cleared properly!
+#if defined(PLATFORM_NINTENDO64)
+#else
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
-
+#endif
     // Flip image vertically
     // NOTE: Alpha value has already been applied to RGB in framebuffer, not needed anymore
     for (int y = height - 1; y >= height/2; y--)
@@ -4357,7 +4455,9 @@ unsigned int rlLoadShaderProgramEx(unsigned int vsId, unsigned int fsId)
     // that is never used; if some attrib name is no found on the shader, it locations becomes -1
     glBindAttribLocation(programId, RL_DEFAULT_SHADER_ATTRIB_LOCATION_POSITION, RL_DEFAULT_SHADER_ATTRIB_NAME_POSITION);
     glBindAttribLocation(programId, RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD, RL_DEFAULT_SHADER_ATTRIB_NAME_TEXCOORD);
+#if !defined(PLATFORM_VITA)
     glBindAttribLocation(programId, RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL, RL_DEFAULT_SHADER_ATTRIB_NAME_NORMAL);
+#endif
     glBindAttribLocation(programId, RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR, RL_DEFAULT_SHADER_ATTRIB_NAME_COLOR);
     glBindAttribLocation(programId, RL_DEFAULT_SHADER_ATTRIB_LOCATION_TANGENT, RL_DEFAULT_SHADER_ATTRIB_NAME_TANGENT);
     glBindAttribLocation(programId, RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD2, RL_DEFAULT_SHADER_ATTRIB_NAME_TEXCOORD2);
@@ -4934,8 +5034,10 @@ void rlLoadDrawCube(void)
     glBindVertexArray(cubeVAO);
     glEnableVertexAttribArray(RL_DEFAULT_SHADER_ATTRIB_LOCATION_POSITION);
     glVertexAttribPointer(RL_DEFAULT_SHADER_ATTRIB_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void *)0); // Positions
+#if !defined(PLATFORM_VITA)   
     glEnableVertexAttribArray(RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL);
     glVertexAttribPointer(RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void *)(3*sizeof(float))); // Normals
+#endif    
     glEnableVertexAttribArray(RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD);
     glVertexAttribPointer(RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void *)(6*sizeof(float))); // Texcoords
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -5000,6 +5102,36 @@ static void rlLoadShaderDefault(void)
     for (int i = 0; i < RL_MAX_SHADER_LOCATIONS; i++) RLGL.State.defaultShaderLocs[i] = -1;
 
     // Vertex shader directly defined, no external file required
+#if defined (PLATFORM_VITA)
+    const char *defaultVShaderCode =
+    "void main(                         \n"
+    "float3 vertexPosition,             \n"
+    "float2 vertexTexCoord,             \n"
+    "float4 vertexColor,                \n"
+    "float2 out fragTexCoord : TEXCOORD0,\n"
+    "float4 out fragColor : COLOR0,      \n"
+    "float4 out gl_Position : POSITION, \n"
+    "uniform float4x4 mvp)              \n"
+    "{                                  \n"
+    "    fragTexCoord = vertexTexCoord; \n"
+    "    fragColor = vertexColor;       \n"
+    "    gl_Position = mul(float4(vertexPosition,1.f),mvp); \n"
+    "}                                  \n";
+    const char *defaultFShaderCode =
+    "void main(                       \n"
+    "float2 fragTexCoord : TEXCOORD0,   \n"
+    "float4 fragColor : COLOR0,                  \n"
+    "uniform sampler2D texture0,        \n"
+    "uniform float4 colDiffuse,        \n"
+    "float4 out finalColor)         \n"
+    "{                                  \n"
+    "    float4 texelColor = tex2D(texture0, fragTexCoord); \n" 
+    "    finalColor=texelColor*colDiffuse*fragColor;      \n"
+    "}                                  \n";
+#else
+#if defined (PLATFORM_ORBIS) || (PLATFORM_PROSPERO)
+//only if you have shader compiler support
+#else
     const char *defaultVShaderCode =
 #if defined(GRAPHICS_API_OPENGL_21)
     "#version 120                       \n"
@@ -5096,12 +5228,23 @@ static void rlLoadShaderDefault(void)
     "    gl_FragColor = texelColor*colDiffuse*fragColor;      \n"
     "}                                  \n";
 #endif
+#endif
+#endif
+#if defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+    RLGL.State.defaultVShaderId=glCreateShader(GL_VERTEX_SHADER);
+    RLGL.State.defaultFShaderId=glCreateShader(GL_FRAGMENT_SHADER);
+    GLint param;
+    glGetShaderiv(RLGL.State.defaultVShaderId,0x8B4F,&param);
+    glShaderBinary(1, &RLGL.State.defaultVShaderId, param, default_vertex_shader, default_vertex_shader_length);
+    glGetShaderiv(RLGL.State.defaultFShaderId,0x8B4F,&param);
+    glShaderBinary(1, &RLGL.State.defaultFShaderId, param, default_fragment_shader, default_fragment_shader_length);
+#else
 
     // NOTE: Compiled vertex/fragment shaders are not deleted,
     // they are kept for re-use as default shaders in case some shader loading fails
     RLGL.State.defaultVShaderId = rlLoadShader(defaultVShaderCode, GL_VERTEX_SHADER);     // Compile default vertex shader
     RLGL.State.defaultFShaderId = rlLoadShader(defaultFShaderCode, GL_FRAGMENT_SHADER);   // Compile default fragment shader
-
+#endif
     RLGL.State.defaultShaderId = rlLoadShaderProgramEx(RLGL.State.defaultVShaderId, RLGL.State.defaultFShaderId);
 
     if (RLGL.State.defaultShaderId > 0)

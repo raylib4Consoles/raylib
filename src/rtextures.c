@@ -115,6 +115,10 @@
     #define RLTEXGPU_SUPPORT_ASTC
 #endif
 
+#if defined(PLATFORM_DREAMCAST)
+void *rl_load_pvr_dreamcast_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips);
+#endif
+
 // Image fileformats not supported by default
 #if (SUPPORT_FILEFORMAT_BMP || \
      SUPPORT_FILEFORMAT_PNG || \
@@ -528,10 +532,15 @@ Image LoadImageFromMemory(const char *fileType, const unsigned char *fileData, i
         image.data = rl_load_ktx_from_memory(fileData, dataSize, &image.width, &image.height, &image.format, &image.mipmaps);
     }
 #endif
-#if SUPPORT_FILEFORMAT_PVR
+#if SUPPORT_FILEFORMAT_PVR || defined(PLATFORM_DREAMCAST)
+
     else if ((strcmp(fileType, ".pvr") == 0) || (strcmp(fileType, ".PVR") == 0))
     {
+#if defined(PLATFORM_DREAMCAST)
+        image.data = rl_load_pvr_dreamcast_from_memory(fileData, dataSize, &image.width, &image.height, &image.format, &image.mipmaps);
+#else
         image.data = rl_load_pvr_from_memory(fileData, dataSize, &image.width, &image.height, &image.format, &image.mipmaps);
+#endif
     }
 #endif
 #if SUPPORT_FILEFORMAT_ASTC

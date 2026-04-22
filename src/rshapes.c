@@ -1538,7 +1538,7 @@ void DrawPoly(Vector2 center, int sides, float radius, float rotation, Color col
     float centralAngle = rotation*DEG2RAD;
     float angleStep = 360.0f/(float)sides*DEG2RAD;
 
-#if SUPPORT_QUADS_DRAW_MODE
+#if SUPPORT_QUADS_DRAW_MODE && !defined(PLATFORM_PSP)
     rlSetTexture(GetShapesTexture().id);
     Rectangle shapeRect = GetShapesTextureRectangle();
 
@@ -1548,6 +1548,26 @@ void DrawPoly(Vector2 center, int sides, float radius, float rotation, Color col
             rlColor4ub(color.r, color.g, color.b, color.a);
             float nextAngle = centralAngle + angleStep;
 
+#if defined(PLATFORM_DREAMCAST)
+            //changed a little to work fine on Dreamcast
+            rlTexCoord2f(shapeRect.x/texShapes.width, shapeRect.y/texShapes.height);
+            rlVertex2f(center.x, center.y);
+            //TRACELOG(LOG_INFO, "%d 0: x=%f y=%f",i,center.x,center.y);
+
+            rlTexCoord2f(shapeRect.x/texShapes.width, (shapeRect.y + shapeRect.height)/texShapes.height);
+            rlVertex2f(center.x + cosf(nextAngle)*radius, center.y + sinf(nextAngle)*radius);
+            //TRACELOG(LOG_INFO, "%d 1: x=%f y=%f",i,center.x + cosf(centralAngle)*radius,center.y + sinf(centralAngle)*radius);
+
+            rlTexCoord2f((shapeRect.x + shapeRect.width)/texShapes.width, (shapeRect.y + shapeRect.height)/texShapes.height);
+            rlVertex2f(center.x + cosf(centralAngle)*radius, center.y + sinf(centralAngle)*radius);
+            //TRACELOG(LOG_INFO, "%d 2: x=%f y=%f",i,center.x + cosf(nextAngle)*radius,center.y + sinf(nextAngle)*radius);
+
+            rlTexCoord2f((shapeRect.x + shapeRect.width)/texShapes.width, shapeRect.y/texShapes.height);
+            rlVertex2f(center.x, center.y);
+            // TRACELOG(LOG_INFO, "%d 3: x=%f y=%f",i,center.x + cosf(centralAngle)*radius,center.y + sinf(centralAngle)*radius);
+
+#else
+           
             rlTexCoord2f(shapeRect.x/texShapes.width, shapeRect.y/texShapes.height);
             rlVertex2f(center.x, center.y);
 
@@ -1559,7 +1579,7 @@ void DrawPoly(Vector2 center, int sides, float radius, float rotation, Color col
 
             rlTexCoord2f((shapeRect.x + shapeRect.width)/texShapes.width, (shapeRect.y + shapeRect.height)/texShapes.height);
             rlVertex2f(center.x + cosf(centralAngle)*radius, center.y + sinf(centralAngle)*radius);
-
+#endif
             centralAngle = nextAngle;
         }
     rlEnd();
@@ -1607,7 +1627,7 @@ void DrawPolyLinesEx(Vector2 center, int sides, float radius, float rotation, fl
     float exteriorAngle = 360.0f/(float)sides*DEG2RAD;
     float innerRadius = radius - (lineThick*cosf(DEG2RAD*exteriorAngle/2.0f));
 
-#if SUPPORT_QUADS_DRAW_MODE
+#if SUPPORT_QUADS_DRAW_MODE && !defined(PLATFORM_PSP)
     rlSetTexture(GetShapesTexture().id);
     Rectangle shapeRect = GetShapesTextureRectangle();
 

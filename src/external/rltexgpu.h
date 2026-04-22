@@ -130,12 +130,19 @@ extern "C" {            // Prevents name mangling of functions
 #endif
 
 // Load image data from memory data files
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
 RLGPUTEXAPI void *rl_load_dds_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips);
 RLGPUTEXAPI void *rl_load_pkm_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips);
 RLGPUTEXAPI void *rl_load_ktx_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips);
 RLGPUTEXAPI void *rl_load_pvr_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips);
 RLGPUTEXAPI void *rl_load_astc_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips);
-
+#else
+RLGPUTEXAPI void *rl_load_dds_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps);
+RLGPUTEXAPI void *rl_load_pkm_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps);
+RLGPUTEXAPI void *rl_load_ktx_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps);
+RLGPUTEXAPI void *rl_load_pvr_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps);
+RLGPUTEXAPI void *rl_load_astc_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps);
+#endif
 RLGPUTEXAPI int rl_save_ktx_to_memory(const char *fileName, void *data, int width, int height, int format, int mipmaps);  // Save image data as KTX file
 
 #if defined(__cplusplus)
@@ -209,7 +216,11 @@ void get_gl_texture_formats(int format, unsigned int *gl_internal_format, unsign
 //----------------------------------------------------------------------------------
 #if defined(RLTEXGPU_SUPPORT_DDS)
 // Loading DDS from memory image data (compressed or uncompressed)
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
 void *rl_load_dds_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips)
+#else
+void *rl_load_dds_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps)
+#endif
 {
     void *image_data = RLTEXGPU_NULL;  // Image data pointer
     int image_pixel_size = 0;           // Image pixel size
@@ -283,9 +294,14 @@ void *rl_load_dds_from_memory(const unsigned char *file_data, unsigned int file_
 
             image_pixel_size = header->width*header->height;
 
+            
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
             if (header->mipmap_count == 0) *mips = 1;   // Parameter not used
             else *mips = header->mipmap_count;
-
+#else
+            if (header->mipmap_count == 0) *mipmaps = 1;   // Parameter not used
+            else *mipmaps = header->mipmap_count;
+#endif
             if (header->ddspf.rgb_bit_count == 16)      // 16bit mode, no compressed
             {
                 if (header->ddspf.flags == 0x40)        // No alpha channel
@@ -409,7 +425,11 @@ void *rl_load_dds_from_memory(const unsigned char *file_data, unsigned int file_
 // Loading PKM image data (ETC1/ETC2 compression)
 // NOTE: KTX is the standard Khronos Group compression format (ETC1/ETC2, mipmaps)
 // PKM is a much simpler file format used mainly to contain a single ETC1/ETC2 compressed image (no mipmaps)
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
 void *rl_load_pkm_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips)
+#else
+void *rl_load_pkm_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps)
+#endif
 {
     void *image_data = RLTEXGPU_NULL;        // Image data pointer
 
@@ -461,8 +481,11 @@ void *rl_load_pkm_from_memory(const unsigned char *file_data, unsigned int file_
 
             *width = header->width;
             *height = header->height;
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
             *mips = 1;
-
+#else
+            *mipmaps =1;
+#endif
             int bpp = 4;
             if (header->format == 3) bpp = 8;
 
@@ -485,7 +508,11 @@ void *rl_load_pkm_from_memory(const unsigned char *file_data, unsigned int file_
 #if defined(RLTEXGPU_SUPPORT_KTX)
 // Load KTX compressed image data (ETC1/ETC2 compression)
 // TODO: Review KTX loading, many things changed!
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
 void *rl_load_ktx_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips)
+#else
+void *rl_load_ktx_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps)
+#endif
 {
     void *image_data = RLTEXGPU_NULL;        // Image data pointer
 
@@ -540,8 +567,11 @@ void *rl_load_ktx_from_memory(const unsigned char *file_data, unsigned int file_
 
             *width = header->width;
             *height = header->height;
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
             *mips = header->mipmap_levels;
-
+#else
+            *mipmaps = header->mipmap_levels;
+#endif
             file_data_ptr += header->key_value_data_size; // Skip value data size
 
             int data_size = ((int *)file_data_ptr)[0];
@@ -699,7 +729,11 @@ int rl_save_ktx(const char *file_name, void *data, int width, int height, int fo
 #if defined(RLTEXGPU_SUPPORT_PVR)
 // Loading PVR image data (uncompressed or PVRT compression)
 // NOTE: PVR v2 not supported, use PVR v3 instead
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
 void *rl_load_pvr_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips)
+#else
+void *rl_load_pvr_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps)
+#endif
 {
     void *image_data = RLTEXGPU_NULL;        // Image data pointer
 
@@ -779,8 +813,11 @@ void *rl_load_pvr_from_memory(const unsigned char *file_data, unsigned int file_
 
                 *width = header->width;
                 *height = header->height;
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
                 *mips = header->num_mipmaps;
-
+#else
+                *mipmaps = header->num_mipmaps;
+#endif
                 // Check data format
                 if (((header->channels[0] == 'l') && (header->channels[1] == 0)) && (header->channel_depth[0] == 8)) *format = RLTEXGPU_PIXELFORMAT_UNCOMPRESSED_GRAYSCALE;
                 else if (((header->channels[0] == 'l') && (header->channels[1] == 'a')) && ((header->channel_depth[0] == 8) && (header->channel_depth[1] == 8))) *format = RLTEXGPU_PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA;
@@ -834,7 +871,11 @@ void *rl_load_pvr_from_memory(const unsigned char *file_data, unsigned int file_
 
 #if defined(RLTEXGPU_SUPPORT_ASTC)
 // Load ASTC compressed image data (ASTC compression)
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)
 void *rl_load_astc_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mips)
+#else
+void *rl_load_astc_from_memory(const unsigned char *file_data, unsigned int file_size, int *width, int *height, int *format, int *mipmaps)
+#endif
 {
     void *image_data = RLTEXGPU_NULL;        // Image data pointer
 
@@ -874,8 +915,11 @@ void *rl_load_astc_from_memory(const unsigned char *file_data, unsigned int file
             // NOTE: Assuming Little Endian (could it be wrong?)
             *width = 0x00000000 | ((int)header->width[2] << 16) | ((int)header->width[1] << 8) | ((int)header->width[0]);
             *height = 0x00000000 | ((int)header->height[2] << 16) | ((int)header->height[1] << 8) | ((int)header->height[0]);
+#if !defined(PLATFORM_PSP) && !defined(PLATFORM_PSP_SDL)            
             *mips = 1;      // NOTE: ASTC format only contains one mipmap level
-
+#else
+            *mipmaps = 1;
+#endif
             // NOTE: Each block is always stored in 128bit so we can calculate the bpp
             int bpp = 128/(header->blockX*header->blockY);
 

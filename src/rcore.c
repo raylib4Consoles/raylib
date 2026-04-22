@@ -33,7 +33,24 @@
 *           - Android (ARM, ARM64)
 *       > PLATFORM_MEMORY
 *           - Memory framebuffer output, using software renderer, no OS required
-*
+*       > PLATFORM_DREAMCAST:
+*           - Sega Dreamcast (SH4)
+*       > PLATFORM_NINTENDO64:
+*           - Nintendo 64 (MIPS4300)
+*       > PLATFORM_GAMECUBE:
+*           - Nintendo Gamecube
+*       > PLATFORM_PLAYSTATION2:
+*           - PlayStation 2
+*       > PLATFORM_PSP:
+*           - PlayStation Psp
+*       > PLATFORM_PSP_SDL:
+*           - PlayStation Psp with SDL 2 backend
+*       > PLATFORM_VITA:
+*           - PlayStation Vita
+*       > PLATFORM_ORBIS:
+*           - PlayStation 4 Orbis
+*       > PLATFORM_PROSPERO:
+*           - PlayStation 5 Prospero
 *   CONFIGURATION:
 *       #define SUPPORT_CAMERA_SYSTEM       1
 *           Camera module is included (rcamera.h) and multiple predefined cameras are available:
@@ -192,9 +209,10 @@
 
     #include "external/dirent.h"    // Required for: DIR, opendir(), closedir() [Used in LoadDirectoryFiles()]
 #else
+#if !defined(PLATFORM_NINTENDO64) // Avoid dirent on Nintendo 64
     #include <dirent.h>             // Required for: DIR, opendir(), closedir() [Used in LoadDirectoryFiles()]
 #endif
-
+#endif
 #if defined(_WIN32)
     #include <io.h>                 // Required for: _access() [Used in FileExists()]
     #include <direct.h>             // Required for: _getch(), _chdir(), _mkdir()
@@ -550,6 +568,24 @@ const char *TextFormat(const char *text, ...); // Formatting of text with variab
     #include "platforms/rcore_android.c"
 #elif defined(PLATFORM_MEMORY)
     #include "platforms/rcore_memory.c"
+#elif defined(PLATFORM_DREAMCAST)
+    #include "platforms/rcore_dreamcast.c"
+#elif defined(PLATFORM_NINTENDO64)
+    #include "platforms/rcore_nintendo64.c"
+#elif defined(PLATFORM_GAMECUBE)
+    #include "platforms/rcore_gamecube.c"
+#elif defined(PLATFORM_PLAYSTATION2)
+    #include "platforms/rcore_playstation2.c"
+#elif defined(PLATFORM_PSP)
+    #include "platforms/rcore_psp.c"
+#elif defined(PLATFORM_PSP_SDL)
+    #include "platforms/rcore_psp_sdl.c"
+#elif defined(PLATFORM_VITA)
+    #include "platforms/rcore_vita.c"
+#elif defined(PLATFORM_ORBIS)
+    #include "platforms/rcore_orbis.c"
+#elif defined(PLATFORM_PROSPERO)
+    #include "platforms/rcore_prospero.c"
 #else
     // TODO: Include your custom platform backend!
     // i.e software rendering backend or console backend!
@@ -606,6 +642,9 @@ const char *TextFormat(const char *text, ...); // Formatting of text with variab
 // Initialize window and OpenGL context
 void InitWindow(int width, int height, const char *title)
 {
+#if defined(PLATFORM_PLAYSTATION2) || defined(PLATFORM_PSP) || defined(PLATFORM_PSP_SDL) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO) || defined(PLATFORM_GAMECUBE)
+    SetTraceLogCallback(CustomLog);
+#endif 
     TRACELOG(LOG_INFO, "Initializing raylib %s", RAYLIB_VERSION);
 
 #if defined(PLATFORM_DESKTOP_GLFW)
@@ -626,6 +665,22 @@ void InitWindow(int width, int height, const char *title)
     TRACELOG(LOG_INFO, "Platform backend: ANDROID");
 #elif defined(PLATFORM_MEMORY)
     TRACELOG(LOG_INFO, "Platform backend: MEMORY (No OS)");
+#elif defined(PLATFORM_DREAMCAST)
+    TRACELOG(LOG_INFO, "Platform backend: DREAMCAST");
+#elif defined(PLATFORM_NINTENDO64)
+    TRACELOG(LOG_INFO, "Platform backend: NINTENDO64");
+#elif defined(PLATFORM_GAMECUBE)
+    TRACELOG(LOG_INFO, "Platform backend: GAMECUBE");
+#elif defined(PLATFORM_PSP)
+    TRACELOG(LOG_INFO, "Platform backend: PSP");
+#elif defined(PLATFORM_PSP_SDL)
+    TRACELOG(LOG_INFO, "Platform backend: PSP_SDL");
+#elif defined(PLATFORM_VITA)
+    TRACELOG(LOG_INFO, "Platform backend: VITA");
+#elif defined(PLATFORM_ORBIS)
+    TRACELOG(LOG_INFO, "Platform backend: ORBIS");
+#elif defined(PLATFORM_PROSPERO)
+    TRACELOG(LOG_INFO, "Platform backend: PROSPERO");
 #else
     // TODO: Include your custom platform backend!
     // i.e software rendering backend or console backend!
@@ -711,7 +766,11 @@ void InitWindow(int width, int height, const char *title)
     #if SUPPORT_MODULE_RSHAPES
     // Set font white rectangle for shapes drawing, so shapes and text can be batched together
     // WARNING: rshapes module is required, if not available, default internal white rectangle is used
+        #if defined(PLATFORM_NINTENDO64)
+            Rectangle rec=(Rectangle){ 0.0f, 0.0f, 5.0f, 10.0f };
+        #else
     Rectangle rec = GetFontDefault().recs[95];
+        #endif
     if (FLAG_IS_SET(CORE.Window.flags, FLAG_MSAA_4X_HINT))
     {
         // NOTE: Try to maximize rec padding to avoid pixel bleeding on MSAA filtering
@@ -737,8 +796,14 @@ void InitWindow(int width, int height, const char *title)
 
     // Initialize random seed
     SetRandomSeed((unsigned int)time(NULL));
-
+#if defined(PLATFORM_NINTENDO64)
+    SwapScreenBuffer();
+#endif
+#if defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PLAYSTATION2) || defined(PLATFORM_VITA) || defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO)
+    TRACELOG(LOG_INFO, "PLATFORM: Application initialized successfully");
+#else
     TRACELOG(LOG_INFO, "SYSTEM: Working Directory: %s", GetWorkingDirectory());
+#endif
 }
 
 // Close window and unload OpenGL context
@@ -881,7 +946,16 @@ void BeginDrawing(void)
 {
     // WARNING: Previously to BeginDrawing() other render textures drawing could happen,
     // consequently the measure for update vs draw is not accurate (only the total frame time is accurate)
+#if defined(PLATFORM_PLAYSTATION2)
+    pglBeginGeometry();
+#endif
+#if defined(PLATFORM_NINTENDO64)
+    platform.disp = display_get();
 
+    rdpq_attach(platform.disp, &platform.zbuffer);
+
+    gl_context_begin();
+#endif
     CORE.Time.current = GetTime();      // Number of elapsed seconds since InitTimer()
     CORE.Time.update = CORE.Time.current - CORE.Time.previous;
     CORE.Time.previous = CORE.Time.current;
@@ -891,6 +965,9 @@ void BeginDrawing(void)
 
     //rlTranslatef(0.375, 0.375, 0);    // HACK to have 2D pixel-perfect drawing on OpenGL 1.1
                                         // NOTE: Not required with OpenGL 3.3+
+    #if defined(PLATFORM_PLAYSTATION2)
+    rlTranslatef(0.375, 0.375, 0);
+    #endif
 }
 
 // End canvas drawing and swap buffers (double buffering)
@@ -913,6 +990,7 @@ void EndDrawing(void)
     CORE.Time.frame = CORE.Time.update + CORE.Time.draw;
 
     // Wait for some milliseconds...
+#if !defined(PLATFORM_PLAYSTATION2)
     if (CORE.Time.frame < CORE.Time.target)
     {
         WaitTime(CORE.Time.target - CORE.Time.frame);
@@ -923,7 +1001,7 @@ void EndDrawing(void)
 
         CORE.Time.frame += waitTime;    // Total frame time: update + draw + wait
     }
-
+#endif
     PollInputEvents();      // Poll user events (before next frame update)
 #endif
 
@@ -1592,6 +1670,10 @@ Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera)
 // Set target FPS (maximum)
 void SetTargetFPS(int fps)
 {
+#if defined(PLATFORM_PLAYSTATION2)
+    SetTargetFPSPS2(fps);
+    return;
+#endif
     if (fps < 1) CORE.Time.target = 0.0;
     else CORE.Time.target = 1.0/(double)fps;
 
@@ -2415,6 +2497,7 @@ bool IsFileExtension(const char *fileName, const char *ext)
 bool DirectoryExists(const char *dirPath)
 {
     bool result = false;
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     DIR *dir = opendir(dirPath);
 
     if (dir != NULL)
@@ -2422,7 +2505,7 @@ bool DirectoryExists(const char *dirPath)
         result = true;
         closedir(dir);
     }
-
+#endif
     return result;
 }
 
@@ -2607,9 +2690,11 @@ const char *GetWorkingDirectory(void)
 {
     static char currentDir[MAX_FILEPATH_LENGTH] = { 0 };
     memset(currentDir, 0, MAX_FILEPATH_LENGTH);
-
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     char *path = GETCWD(currentDir, MAX_FILEPATH_LENGTH - 1);
-
+#else
+    char *path = ".";
+#endif
     return path;
 }
 
@@ -2818,11 +2903,14 @@ int MakeDirectory(const char *dirPath)
 // Change working directory, returns true on success
 bool ChangeDirectory(const char *dirPath)
 {
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     bool result = CHDIR(dirPath);
 
     if (result != 0) TRACELOG(LOG_WARNING, "SYSTEM: Failed to change to directory: %s", dirPath);
     else TRACELOG(LOG_INFO, "SYSTEM: Working Directory: %s", dirPath);
-
+#else
+    bool result=1;
+#endif
     return (result == 0);
 }
 
@@ -2944,6 +3032,7 @@ unsigned int GetDirectoryFileCountEx(const char *basePath, const char *filter, b
     memset(path, 0, MAX_FILEPATH_LENGTH);
 
     struct dirent *entity;
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     DIR *dir = opendir(basePath);
 
     if (dir != NULL) // It's a directory
@@ -2979,6 +3068,7 @@ unsigned int GetDirectoryFileCountEx(const char *basePath, const char *filter, b
         closedir(dir);
     }
     else TRACELOG(LOG_WARNING, "FILEIO: Directory cannot be opened (%s)", basePath);  // Maybe it's a file...
+#endif
     return fileCounter;
 }
 
@@ -4124,10 +4214,10 @@ Vector2 GetMousePosition(void)
 Vector2 GetMouseDelta(void)
 {
     Vector2 delta = { 0 };
-
+    
     delta.x = (CORE.Input.Mouse.currentPosition.x - CORE.Input.Mouse.previousPosition.x)*CORE.Input.Mouse.scale.x;
     delta.y = (CORE.Input.Mouse.currentPosition.y - CORE.Input.Mouse.previousPosition.y)*CORE.Input.Mouse.scale.y;
-
+    
     return delta;
 }
 
@@ -4230,7 +4320,7 @@ void InitTimer(void)
     timeBeginPeriod(1); // Setup high-resolution timer to 1ms (granularity of 1-2 ms)
 #endif
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__) || defined(PLATFORM_DREAMCAST) || defined(PLATFORM_PSP) || defined(PLATFORM_PSP_SDL) ||defined(PLATFORM_ORBIS) || defined(PLATFORM_PROSPERO) || defined(PLATFORM_GAMECUBE)
     struct timespec now = { 0 };
 
     if (clock_gettime(CLOCK_MONOTONIC, &now) == 0) // Success
@@ -4239,7 +4329,17 @@ void InitTimer(void)
     }
     else TRACELOG(LOG_WARNING, "TIMER: Hi-resolution timer not available");
 #endif
-
+#if defined(PLATFORM_NINTENDO64)
+    disable_interrupts();
+    CORE.Time.base = get_ticks_us();
+    enable_interrupts();
+#endif
+#if defined(PLATFORM_PLAYSTATION2)
+    CORE.Time.base=clock();
+#endif
+#if defined(PLATFORM_VITA)
+    CORE.Time.base=sceKernelGetProcessTimeWide();
+#endif
     CORE.Time.previous = GetTime(); // Get time as double
 }
 
@@ -4256,9 +4356,12 @@ void SetupViewport(int width, int height)
     rlLoadIdentity();                   // Reset current matrix (projection)
 
     // Set orthographic projection to current framebuffer size
+#if defined(PLATFORM_DREAMCAST) || defined(PLATFORM_NINTENDO64) || defined(PLATFORM_PLAYSTATION2)
+    rlOrtho(0, CORE.Window.render.width, CORE.Window.render.height, 0, -1.0f, 1.0f);
+#else
     // NOTE: Configured top-left corner as (0, 0)
     rlOrtho(0, CORE.Window.render.width, CORE.Window.render.height, 0, 0.0f, 1.0f);
-
+#endif
     rlMatrixMode(RL_MODELVIEW);         // Switch back to modelview matrix
     rlLoadIdentity();                   // Reset current matrix (modelview)
 }
@@ -4273,6 +4376,8 @@ static void ScanDirectoryFiles(const char *basePath, FilePathList *files, const 
     memset(path, 0, MAX_FILEPATH_LENGTH);
 
     struct dirent *dp = NULL;
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
+
     DIR *dir = opendir(basePath);
 
     if (dir != NULL)
@@ -4317,6 +4422,7 @@ static void ScanDirectoryFiles(const char *basePath, FilePathList *files, const 
         closedir(dir);
     }
     else TRACELOG(LOG_WARNING, "FILEIO: Directory cannot be opened (%s)", basePath);  // Maybe it's a file...
+#endif
 }
 
 #if SUPPORT_AUTOMATION_EVENTS

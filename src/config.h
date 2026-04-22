@@ -97,7 +97,7 @@
 #ifndef SUPPORT_SCREEN_CAPTURE
     // Allow automatic screen capture of current screen pressing F12, defined in KeyCallback()
     // WARNING: It requires SUPPORT_FILEFORMAT_PNG flag
-    #define SUPPORT_SCREEN_CAPTURE          1
+    #define SUPPORT_SCREEN_CAPTURE          0
 #endif
 #ifndef SUPPORT_COMPRESSION_API
     // Support CompressData() and DecompressData() functions
@@ -105,7 +105,7 @@
 #endif
 #ifndef SUPPORT_AUTOMATION_EVENTS
     // Support automatic generated events, loading and recording of those events when required
-    #define SUPPORT_AUTOMATION_EVENTS       1
+    #define SUPPORT_AUTOMATION_EVENTS       0
 #endif
 #ifndef SUPPORT_CUSTOM_FRAME_CONTROL
     // Support custom frame control, only for advanced users
@@ -271,7 +271,7 @@
 #ifndef SUPPORT_IMAGE_EXPORT
     // Support image export functionality (.png, .bmp, .tga, .jpg, .qoi)
     // NOTE: Image export requires stb_image_write.h library
-    #define SUPPORT_IMAGE_EXPORT        1
+    #define SUPPORT_IMAGE_EXPORT        0
 #endif
 #ifndef SUPPORT_IMAGE_GENERATION
     // Support procedural image generation functionality: gradient, spot, perlin-noise, cellular...
@@ -333,7 +333,7 @@
     #define SUPPORT_FILEFORMAT_WAV      1
 #endif
 #ifndef SUPPORT_FILEFORMAT_OGG
-    #define SUPPORT_FILEFORMAT_OGG      1
+    #define SUPPORT_FILEFORMAT_OGG      0
 #endif
 #ifndef SUPPORT_FILEFORMAT_MP3
     #define SUPPORT_FILEFORMAT_MP3      1

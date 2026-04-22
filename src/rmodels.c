@@ -435,6 +435,16 @@ void DrawSphere(Vector3 centerPos, float radius, Color color)
     DrawSphereEx(centerPos, radius, 16, 16, color);
 }
 
+/* The Dreamcast's GCC compiler for SuperH has a bug with -ffast-math enabled
+   which causes the compiler to ICE on the following two functions. This
+   workaround solves the ICE while still using the SH4's fast trig instructions
+   for the math.
+*/
+#if defined(PLATFORM_DREAMCAST)
+    #include <kos.h>
+    #define sinf(s) fsin(s)
+    #define cosf(s) fcos(s)
+#endif
 // Draw sphere with extended parameters
 void DrawSphereEx(Vector3 centerPos, float radius, int rings, int slices, Color color)
 {
@@ -1037,7 +1047,10 @@ void DrawCapsuleWires(Vector3 startPos, Vector3 endPos, float radius, int slices
         }
     rlEnd();
 }
-
+#if defined(PLATFORM_DREAMCAST)
+   #undef sinf
+   #undef cosf
+#endif
 // Draw a plane
 void DrawPlane(Vector3 centerPos, Vector2 size, Color color)
 {
@@ -1076,7 +1089,35 @@ void DrawRay(Ray ray, Color color)
 void DrawGrid(int slices, float spacing)
 {
     int halfSlices = slices/2;
+#if defined(PLATFORM_DREAMCAST)
 
+    rlBegin(RL_QUADS);
+    for (int i = -halfSlices; i < halfSlices; i++) {
+        if (i == 0) {
+            rlColor3f(1.0f, 0.5f, 0.5f);
+            rlColor3f(1.0f, 0.5f, 0.5f);
+            rlColor3f(1.0f, 0.5f, 0.5f);
+            rlColor3f(1.0f, 0.5f, 0.5f);
+        } else {
+            rlColor3f(1.0f, 0.75f, 0.75f);
+            rlColor3f(1.0f, 0.75f, 0.75f);
+            rlColor3f(1.0f, 0.75f, 0.75f);
+            rlColor3f(1.0f, 0.75f, 0.75f);
+        }
+
+        float x1 = (float)i * spacing;
+        float x2 = (float)(i + 1) * spacing;
+        float z1 = (float)-halfSlices * spacing;
+        float z2 = (float)halfSlices * spacing;
+
+        // Define the vertices for the quad
+        rlVertex3f(x1, 0.0f, z1);
+        rlVertex3f(x2, 0.0f, z1);
+        rlVertex3f(x2, 0.0f, z2);
+        rlVertex3f(x1, 0.0f, z2);
+    rlEnd();
+    }
+#else
     rlBegin(RL_LINES);
         for (int i = -halfSlices; i <= halfSlices; i++)
         {
@@ -1096,6 +1137,7 @@ void DrawGrid(int slices, float spacing)
             rlVertex3f((float)halfSlices*spacing, 0.0f, (float)i*spacing);
         }
     rlEnd();
+#endif
 }
 
 // Load model from files (mesh and material)
@@ -1314,7 +1356,7 @@ void UploadMesh(Mesh *mesh, bool dynamic)
     }
     // WARNING: When setting default vertex attribute values, the values for each generic vertex attribute
     // is part of current state, and it is maintained even if a different program object is used
-
+#if !defined(PLATFORM_VITA)
     if (mesh->normals != NULL)
     {
         // Enable vertex attributes: normals (shader-location = 2)
@@ -1331,6 +1373,7 @@ void UploadMesh(Mesh *mesh, bool dynamic)
         rlSetVertexAttributeDefault(RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL, value, SHADER_ATTRIB_VEC3, 3);
         rlDisableVertexAttribute(RL_DEFAULT_SHADER_ATTRIB_LOCATION_NORMAL);
     }
+#endif
 
     if (mesh->colors != NULL)
     {
@@ -1532,8 +1575,10 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
     matModelView = MatrixMultiply(matModel, matView);
 
     // Upload model normal matrix (if locations available)
+#if !defined(PLATFORM_VITA)
     if (material.shader.locs[SHADER_LOC_MATRIX_NORMAL] != -1) rlSetUniformMatrix(material.shader.locs[SHADER_LOC_MATRIX_NORMAL], MatrixTranspose(MatrixInvert(matModel)));
-    //-----------------------------------------------------
+#endif
+     //-----------------------------------------------------
 
     // Bind active texture maps (if available)
     for (int i = 0; i < MAX_MATERIAL_MAPS; i++)
@@ -1568,7 +1613,7 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
         rlEnableVertexBuffer(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD]);
         rlSetVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_TEXCOORD01], 2, RL_FLOAT, 0, 0, 0);
         rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_TEXCOORD01]);
-
+#if !defined(PLATFORM_VITA)
         if (material.shader.locs[SHADER_LOC_VERTEX_NORMAL] != -1)
         {
             // Bind mesh VBO data: vertex normals (shader-location = 2)
@@ -1576,7 +1621,7 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
             rlSetVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_NORMAL], 3, RL_FLOAT, 0, 0, 0);
             rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_NORMAL]);
         }
-
+#endif
         // Bind mesh VBO data: vertex colors (shader-location = 3, if available)
         if (material.shader.locs[SHADER_LOC_VERTEX_COLOR] != -1)
         {
@@ -1630,7 +1675,14 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
         }
 #endif
 
-        if (mesh.indices != NULL) rlEnableVertexBufferElement(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES]);
+        if (mesh.indices != NULL) 
+        {
+#if defined(PLATFORM_PROSPERO)
+            rlDrawVertexArrayElements(0, mesh.triangleCount*3, mesh.indices);
+#else
+            rlEnableVertexBufferElement(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES]);
+#endif
+        }
     }
 
     int eyeCount = 1;
@@ -1773,9 +1825,11 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
     matModelView = MatrixMultiply(rlGetMatrixTransform(), matView);
 
     // Upload model normal matrix (if locations available)
+#if !defined(PLATFORM_VITA)
+
     if (material.shader.locs[SHADER_LOC_MATRIX_NORMAL] != -1) rlSetUniformMatrix(material.shader.locs[SHADER_LOC_MATRIX_NORMAL], MatrixTranspose(MatrixInvert(matModel)));
     //-----------------------------------------------------
-
+#endif
     // Bind active texture maps (if available)
     for (int i = 0; i < MAX_MATERIAL_MAPS; i++)
     {
@@ -1807,7 +1861,7 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
         rlEnableVertexBuffer(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_TEXCOORD]);
         rlSetVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_TEXCOORD01], 2, RL_FLOAT, 0, 0, 0);
         rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_TEXCOORD01]);
-
+#if !defined(PLATFORM_VITA)
         if (material.shader.locs[SHADER_LOC_VERTEX_NORMAL] != -1)
         {
             // Bind mesh VBO data: vertex normals (shader-location = 2)
@@ -1815,7 +1869,7 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
             rlSetVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_NORMAL], 3, RL_FLOAT, 0, 0, 0);
             rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_VERTEX_NORMAL]);
         }
-
+#endif
         // Bind mesh VBO data: vertex colors (shader-location = 3, if available)
         if (material.shader.locs[SHADER_LOC_VERTEX_COLOR] != -1)
         {
@@ -1869,7 +1923,14 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
         }
 #endif
 
-        if (mesh.indices != NULL) rlEnableVertexBufferElement(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES]);
+        if (mesh.indices != NULL) 
+        {
+            #if defined(PLATFORM_PROSPERO)
+            rlDrawVertexArrayElements(0, mesh.triangleCount*3, mesh.indices);
+            #else
+            rlEnableVertexBufferElement(mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES]);
+            #endif
+        }
     }
 
     int eyeCount = 1;
@@ -1937,7 +1998,9 @@ void UnloadMesh(Mesh mesh)
     // Unload mesh vertex buffers
     RL_FREE(mesh.vertices);
     RL_FREE(mesh.texcoords);
+#if !defined(PLATFORM_VITA)
     RL_FREE(mesh.normals);
+#endif
     RL_FREE(mesh.colors);
     RL_FREE(mesh.tangents);
     RL_FREE(mesh.texcoords2);
@@ -4131,12 +4194,14 @@ bool CheckCollisionBoxSphere(BoundingBox box, Vector3 center, float radius)
 {
     bool collision = false;
 
+    float dmin = 0;
+
     Vector3 closestPoint = {
         Clamp(center.x, box.min.x, box.max.x),
         Clamp(center.y, box.min.y, box.max.y),
         Clamp(center.z, box.min.z, box.max.z)
     };
-
+    
     if (Vector3DistanceSqr(center, closestPoint) <= (radius*radius)) collision = true;
 
     return collision;
@@ -4418,8 +4483,9 @@ static Model LoadOBJ(const char *fileName)
     char currentDir[MAX_FILEPATH_LENGTH] = { 0 };
     strncpy(currentDir, GetWorkingDirectory(), MAX_FILEPATH_LENGTH - 1); // Save current working directory
     const char *workingDir = GetDirectoryPath(fileName); // Switch to OBJ directory for material path correctness
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     if (CHDIR(workingDir) != 0) TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to change working directory", workingDir);
-
+#endif
     unsigned int dataSize = (unsigned int)strlen(fileText);
 
     unsigned int flags = TINYOBJ_FLAG_TRIANGULATE;
@@ -4631,11 +4697,12 @@ static Model LoadOBJ(const char *fileName)
     tinyobj_materials_free(objMaterials, objMaterialCount);
 
     // Restore current working directory
+#if !defined(PLATFORM_PLAYSTATION2) && !defined(PLATFORM_VITA) && !defined(PLATFORM_ORBIS) && !defined(PLATFORM_PROSPERO) && !defined(PLATFORM_NINTENDO64)
     if (CHDIR(currentDir) != 0)
     {
         TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to change working directory", currentDir);
     }
-
+#endif
     return model;
 }
 #endif
