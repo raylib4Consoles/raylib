@@ -47,22 +47,17 @@
 
 //libogc2+opengx waiting kos+gldc ported to gamecube
 #include <gccore.h>    // libogc2
-#include <sys/iosupport.h> //stdout redirection
 #include <opengx.h>   // OpenGX
-#include <debug.h>
-#include <dvm.h>
 #include <fat.h>
-#include <sdcard/gcsd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
-static void *xfb[2] = { NULL, NULL }; 
-static int which_fb = 0;              
+static void *xfb[2] = { NULL, NULL };
+static int which_fb = 0;
 static GXRModeObj *rmode = NULL;
-bool geckoEnabled = false;
 static void *gp_fifo = NULL;
 #define DEFAULT_FIFO_SIZE (256*1024)
 
@@ -340,24 +335,14 @@ void DisableCursor(void)
 // Swap back buffer with front buffer (screen drawing)
 void SwapScreenBuffer(void)
 {
-
-    //glKosSwapBuffers();
-  
-
-
-   
-    
-    GX_DrawDone(); // Asegura que GPU terminó
-    GX_SetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GX_CopyDisp(xfb[which_fb], GX_TRUE);
-    GX_Flush();
+    GX_DrawDone();
 
     VIDEO_SetNextFramebuffer(xfb[which_fb]);
     VIDEO_Flush();
-    VIDEO_WaitVSync();
+    VIDEO_WaitForFlush();
 
-    which_fb ^= 1; 
-  
+    which_fb ^= 1;
 }
 
 //----------------------------------------------------------------------------------
@@ -499,10 +484,8 @@ void PollInputEvents(void)
 
     // Get number of gamepads connected
     int numGamepads = 0;
-    PADStatus pad_state[PAD_CHANMAX];
     
     unsigned int pads_enabled=PAD_ScanPads();
-    PAD_Read(pad_state);
     // Check if gamepads are ready
     // NOTE: We do it here in case of disconnection
     for (int i = 0; i < PAD_CHANMAX; i++)
@@ -543,21 +526,9 @@ void PollInputEvents(void)
     }
 
 }
-void debugGeckoInit()
-{
-    //using gecko usb log on slot 2 and enable printf over it
-    DEBUG_Init(GDBSTUB_DEVICE_USB, 1);
-    setvbuf(stdout, NULL, _IONBF, 0);
-    SYS_STDIO_Report(TRUE);
-    geckoEnabled=true;
-}
+
 void CustomLog(int msgType, const char *text, va_list args)
 {
-
-    if(!geckoEnabled)
-    {
-        debugGeckoInit();
-    }
     char buffer[1024] = { 0 };
 
    
@@ -567,12 +538,12 @@ void CustomLog(int msgType, const char *text, va_list args)
     
     switch (msgType)
     {
-        case LOG_TRACE: printf("[GAMECUBE][TRACE]: %s\n",buffer); break;
-        case LOG_DEBUG: printf("[GAMECUBE][DEBUG]: %s\n",buffer); break;
-        case LOG_INFO: printf("[GAMECUBE][INFO]: %s\n",buffer); break;
-        case LOG_WARNING: printf("[GAMECUBE][WARNING]: %s\n",buffer); break;
-        case LOG_ERROR: printf("[GAMECUBE][ERROR]: %s\n",buffer); break;
-        case LOG_FATAL: printf("[GAMECUBE][FATAL]: %s\n",buffer); break;
+        case LOG_TRACE: SYS_Report("[GAMECUBE][TRACE]: %s\n",buffer); break;
+        case LOG_DEBUG: SYS_Report("[GAMECUBE][DEBUG]: %s\n",buffer); break;
+        case LOG_INFO: SYS_Report("[GAMECUBE][INFO]: %s\n",buffer); break;
+        case LOG_WARNING: SYS_Report("[GAMECUBE][WARNING]: %s\n",buffer); break;
+        case LOG_ERROR: SYS_Report("[GAMECUBE][ERROR]: %s\n",buffer); break;
+        case LOG_FATAL: SYS_Report("[GAMECUBE][FATAL]: %s\n",buffer); break;
         default: break;
     }
 }
@@ -604,24 +575,21 @@ int InitPlatform(void)
         }
     }*/
     //TRACELOG(LOG_INFO, "PLATFORM: calling SYS_AllocateFramebuffer");
-    xfb[0] = SYS_AllocateFramebuffer(rmode); //MEM_K0_TO_K1(SYS_AllocateFrames(rmode));
-    xfb[1] = SYS_AllocateFramebuffer(rmode);//MEM_K0_TO_K1(SYS_AllocateFrames(rmode));
+    xfb[0] = SYS_AllocateFramebuffer(rmode);
+    xfb[1] = SYS_AllocateFramebuffer(rmode);
     VIDEO_Configure(rmode);
 
     //TRACELOG(LOG_INFO, "PLATFORM: calling VIDEO_SetNextFramebuffer");
     VIDEO_SetNextFramebuffer(xfb[which_fb]);
     //TRACELOG(LOG_INFO, "PLATFORM: calling VIDEO_SetBlack");
-    VIDEO_SetBlack(FALSE);
+    VIDEO_SetBlack(false);
     //TRACELOG(LOG_INFO, "PLATFORM: calling VIDEO_Flush");
     VIDEO_Flush();
-    //TRACELOG(LOG_INFO, "PLATFORM: calling VIDEO_WaitVSync");
-    VIDEO_WaitVSync();
-    //TRACELOG(LOG_INFO, "PLATFORM: calling VIDEO_WaitVSync");
-    if(rmode->viTVMode & VI_NON_INTERLACE) VIDEO_WaitVSync(); 
+    //TRACELOG(LOG_INFO, "PLATFORM: calling VIDEO_WaitForFlush");
+    VIDEO_WaitForFlush();
 
     // Inicializar FIFO de GX
     gp_fifo = memalign(32, DEFAULT_FIFO_SIZE);
-    memset(gp_fifo, 0, DEFAULT_FIFO_SIZE);
     GX_Init(gp_fifo, DEFAULT_FIFO_SIZE);
 
     //TRACELOG(LOG_INFO, "PLATFORM: calling ogx_initialize");
@@ -629,8 +597,8 @@ int InitPlatform(void)
 
     //TRACELOG(LOG_INFO, "PLATFORM: calling PAD_Init");
     PAD_Init();
-    //access to slot 1 sd card memorycard
-    if(!fatMountSimple("sda",&__io_gcsda))
+    //access to all storage devices
+    if(!fatInitDefault())
     {
         TRACELOG(LOG_ERROR, "PLATFORM: something was wrong mounting sd card");
     }
