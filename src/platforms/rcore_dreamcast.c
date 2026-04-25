@@ -448,6 +448,149 @@ static void MapControls(int padIndex, cont_state_t *dcPadState) {
     CORE.Input.Gamepad.axisCount[padIndex] = 6;
 }
 
+#define KBD_KEY_MAPPED_NUM 100
+static const KeyboardKey mapScancodeToKey[KBD_KEY_MAPPED_NUM] = {
+    KEY_NULL,           // KBD_KEY_NONE
+    0,                  // KBD_KEY_ERROR
+    0,                  // KBD_KEY_ERR2
+    0,                  // KBD_KEY_ERR3
+    KEY_A,              // KBD_KEY_A
+    KEY_B,              // KBD_KEY_B
+    KEY_C,              // KBD_KEY_C
+    KEY_D,              // KBD_KEY_D
+    KEY_E,              // KBD_KEY_E
+    KEY_F,              // KBD_KEY_F
+    KEY_G,              // KBD_KEY_G
+    KEY_H,              // KBD_KEY_H
+    KEY_I,              // KBD_KEY_I
+    KEY_J,              // KBD_KEY_J
+    KEY_K,              // KBD_KEY_K
+    KEY_L,              // KBD_KEY_L
+    KEY_M,              // KBD_KEY_M
+    KEY_N,              // KBD_KEY_N
+    KEY_O,              // KBD_KEY_O
+    KEY_P,              // KBD_KEY_P
+    KEY_Q,              // KBD_KEY_Q
+    KEY_R,              // KBD_KEY_R
+    KEY_S,              // KBD_KEY_S
+    KEY_T,              // KBD_KEY_T
+    KEY_U,              // KBD_KEY_U
+    KEY_V,              // KBD_KEY_V
+    KEY_W,              // KBD_KEY_W
+    KEY_X,              // KBD_KEY_X
+    KEY_Y,              // KBD_KEY_Y
+    KEY_Z,              // KBD_KEY_Z
+    KEY_ONE,            // KBD_KEY_1 ????
+    KEY_TWO,            // KBD_KEY_2
+    KEY_THREE,          // KBD_KEY_3
+    KEY_FOUR,           // KBD_KEY_4
+    KEY_FIVE,           // KBD_KEY_5
+    KEY_SIX,            // KBD_KEY_6
+    KEY_SEVEN,          // KBD_KEY_7
+    KEY_EIGHT,          // KBD_KEY_8
+    KEY_NINE,           // KBD_KEY_9
+    KEY_ZERO,           // KBD_KEY_0
+    KEY_ENTER,          // KBD_KEY_ENTER
+    KEY_ESCAPE,         // KBD_KEY_ESCAPE
+    KEY_BACKSPACE,      // KBD_KEY_BACKSPACE
+    KEY_TAB,            // KBD_KEY_TAB
+    KEY_SPACE,          // KBD_KEY_SPACE
+    KEY_MINUS,          // KBD_KEY_MINUS
+    KEY_EQUAL,          // KBD_KEY_PLUS
+    KEY_LEFT_BRACKET,   // KBD_KEY_LRACKET
+    KEY_RIGHT_BRACKET,  // KBD_KEY_RBRACKET
+    KBD_KEY_BACKSLASH,  // KBD_KEY_BACKSLASH
+    0,
+    KEY_SEMICOLON,      // KBD_KEY_SEMICOLON
+    KEY_APOSTROPHE,     // KBD_KEY_QUOTE
+    KEY_GRAVE,          // KBD_KEY_TILDE
+    KEY_COMMA,          // KBD_KEY_COMMA
+    KEY_PERIOD,         // KBD_KEY_PERIOD
+    KEY_SLASH,          // KBD_KEY_SLASH
+    KEY_CAPS_LOCK,      // KBD_KEY_CAPSLOCK
+    KEY_F1,             // KBD_KEY_F1
+    KEY_F2,             // KBD_KEY_F2
+    KEY_F3,             // KBD_KEY_F3
+    KEY_F4,             // KBD_KEY_F4
+    KEY_F5,             // KBD_KEY_F5
+    KEY_F6,             // KBD_KEY_F6
+    KEY_F7,             // KBD_KEY_F7
+    KEY_F8,             // KBD_KEY_F8
+    KEY_F9,             // KBD_KEY_F9
+    KEY_F10,            // KBD_KEY_F10
+    KEY_F11,            // KBD_KEY_F11
+    KEY_F12,            // KBD_KEY_F12
+    KEY_PRINT_SCREEN,   // KBD_KEY_PRINT
+    KEY_SCROLL_LOCK,    // KBD_KEY_SCRLOCK
+    KEY_PAUSE,          // KBD_KEY_PAUSE
+    KEY_INSERT,         // KBD_KEY_INSERT
+    KEY_HOME,           // KBD_KEY_HOME
+    KEY_PAGE_UP,        // KBD_KEY_PGUP
+    KEY_DELETE,         // KBD_KEY_DEL
+    KEY_END,            // KBD_KEY_END
+    KEY_PAGE_DOWN,      // KBD_KEY_PGDOWN
+    KEY_RIGHT,          // KBD_KEY_RIGHT
+    KEY_LEFT,           // KBD_KEY_LEFT
+    KEY_DOWN,           // KBD_KEY_DOWN
+    KEY_UP,             // KBD_KEY_UP
+    KEY_NUM_LOCK,       // KBD_KEY_PAD_NUMLOCK
+    KEY_KP_DIVIDE,      // KBD_KEY_PAD_DIVIDE
+    KEY_KP_MULTIPLY,    // KBD_KEY_PAD_MULTIPLY
+    KEY_KP_SUBTRACT,    // KBD_KEY_PAD_MINUS
+    KEY_KP_ADD,         // KBD_KEY_PAD_PLUS
+    KEY_KP_ENTER,       // KBD_KEY_PAD_ENTER
+    KEY_KP_1,           // KBD_KEY_PAD_1
+    KEY_KP_2,           // KBD_KEY_PAD_2
+    KEY_KP_3,           // KBD_KEY_PAD_3
+    KEY_KP_4,           // KBD_KEY_PAD_4
+    KEY_KP_5,           // KBD_KEY_PAD_5
+    KEY_KP_6,           // KBD_KEY_PAD_6
+    KEY_KP_7,           // KBD_KEY_PAD_7
+    KEY_KP_8,           // KBD_KEY_PAD_8
+    KEY_KP_9,           // KBD_KEY_PAD_9
+    KEY_KP_0,           // KBD_KEY_PAD_0
+    KEY_KP_DECIMAL,     // KBD_KEY_PAD_PERIOD
+};
+
+// KBD_KEY_ to Raylib KEY_ mapping
+static KeyboardKey ConvertKbdKeyToRayKey(int k)
+{
+    if (k >= 0 && k < KBD_KEY_MAPPED_NUM)
+    {
+        return mapScancodeToKey[k];
+    }
+
+    return KEY_NULL; // No equivalent key in Raylib
+}
+
+static void MapKeyboard(maple_device_t *kbDevice) 
+{
+    kbd_state_t *kbd = kbd_get_state(kbDevice);
+    for (int i = 0; i < KBD_MAX_KEYS; i++)
+    {
+        int k = ConvertKbdKeyToRayKey(i);
+        
+        if(kbd->key_states[i].is_down)
+        {
+            if ((CORE.Input.Keyboard.currentKeyState[k] == 0) && (CORE.Input.Keyboard.keyPressedQueueCount < MAX_KEY_PRESSED_QUEUE))
+            {
+                CORE.Input.Keyboard.keyPressedQueue[CORE.Input.Keyboard.keyPressedQueueCount] = k;
+                CORE.Input.Keyboard.keyPressedQueueCount++;
+            }
+        }
+        
+        CORE.Input.Keyboard.currentKeyState[k] = kbd->key_states[i].is_down;
+    }
+    CORE.Input.Keyboard.currentKeyState[KEY_LEFT_CONTROL] = kbd->cond.modifiers.lctrl;
+    CORE.Input.Keyboard.currentKeyState[KEY_LEFT_SHIFT] = kbd->cond.modifiers.lshift;
+    CORE.Input.Keyboard.currentKeyState[KEY_LEFT_ALT] = kbd->cond.modifiers.lalt;
+    CORE.Input.Keyboard.currentKeyState[KEY_LEFT_SUPER] = kbd->cond.modifiers.s1;
+    CORE.Input.Keyboard.currentKeyState[KEY_RIGHT_CONTROL] = kbd->cond.modifiers.rctrl;
+    CORE.Input.Keyboard.currentKeyState[KEY_RIGHT_SHIFT] = kbd->cond.modifiers.rshift;
+    CORE.Input.Keyboard.currentKeyState[KEY_RIGHT_ALT] = kbd->cond.modifiers.ralt;
+    CORE.Input.Keyboard.currentKeyState[KEY_RIGHT_SUPER] = kbd->cond.modifiers.s2;
+}
+
 // Register all input events
 void PollInputEvents(void)
 {
@@ -461,8 +604,12 @@ void PollInputEvents(void)
     CORE.Input.Keyboard.keyPressedQueueCount = 0;
     CORE.Input.Keyboard.charPressedQueueCount = 0;
 
-    // Reset key repeats
-    for (int i = 0; i < MAX_KEYBOARD_KEYS; i++) CORE.Input.Keyboard.keyRepeatInFrame[i] = 0;
+    // Register previous keys states
+    for (int i = 0; i < MAX_KEYBOARD_KEYS; i++)
+    {
+        CORE.Input.Keyboard.previousKeyState[i] = CORE.Input.Keyboard.currentKeyState[i];
+        CORE.Input.Keyboard.keyRepeatInFrame[i] = 0;
+    }
 
     // Reset last gamepad button/axis registered state
     CORE.Input.Gamepad.lastButtonPressed = 0; // GAMEPAD_BUTTON_UNKNOWN
@@ -630,9 +777,20 @@ void PollInputEvents(void)
         //    CORE.Input.Keyboard.previousKeyState[i] = CORE.Input.Keyboard.currentKeyState[i];
         //    CORE.Input.Keyboard.keyRepeatInFrame[i] = 0;
         //}
-
         // TODO: Poll input events for current plaform
         }
+    }
+    
+    for (int padIndex = 0; padIndex < MAX_GAMEPADS; padIndex++)
+    {
+        cont = maple_enum_type(padIndex, MAPLE_FUNC_KEYBOARD);
+        if(!cont)
+            continue;
+        cont_state_t *dcKbState = (cont_state_t *)maple_dev_status(cont);
+        if (!dcKbState)
+            continue;
+        
+        MapKeyboard(cont);
     }
 }
 
